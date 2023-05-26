@@ -1,0 +1,27 @@
+spring:
+  profiles:
+    active: "dev"
+
+---
+
+spring:
+   config:
+      activate:
+         on-profile: "dev"
+connection:
+   db:
+      driverClassName: org.postgresql.Driver
+      jdbcUrl: jdbc:postgresql://localhost:5432/news?charSet=utf-8
+      username: admin
+      password: admin
+      maxPoolSize: 3
+      connectionTimeout: 3000
+   hibernate:
+      schema: none
+      sessionContext: thread
+      dialect: org.hibernate.dialect.PostgreSQLDialect
+      showSql: true
+      transactionIsolationValue: 2
+
+---         
+         

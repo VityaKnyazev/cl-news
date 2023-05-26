@@ -1,0 +1,77 @@
+plugins {
+	id 'java-library'
+	id 'com.diffplug.eclipse.apt' version '3.41.1'
+	id 'org.liquibase.gradle' version '2.2.0'
+	id 'org.springframework.boot' version '3.0.6'
+	id 'io.spring.dependency-management' version '1.1.0'
+}
+
+ext {    
+	hibernateValidatorVersion = '8.0.0.Final'
+	
+	postgresqlConVersion = '42.6.0'
+
+    mapStructVersion = '1.5.4.Final'
+	
+	lombokVersion = '1.18.26'
+	
+	lombokMapstructBindingVersion = '0.2.0'
+	
+	liquibaseVersion = '4.21.1'
+	piocliVersion = '4.7.3'
+	
+	testcontainersPostgresVersion = '1.17.6'
+}
+
+
+group = 'ru.clevertec.ecl.knyazev'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '17'
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation "org.springframework.boot:spring-boot-starter"
+	implementation "org.springframework.boot:spring-boot-starter-data-jpa"
+	implementation "org.springframework.boot:spring-boot-starter-data-rest"
+	implementation "org.springframework.boot:spring-boot-starter-web"
+	
+	implementation "org.hibernate.validator:hibernate-validator:$hibernateValidatorVersion"
+	
+	implementation "org.postgresql:postgresql:$postgresqlConVersion"
+	
+	liquibaseRuntime "org.liquibase:liquibase-core:$liquibaseVersion"
+	liquibaseRuntime "info.picocli:picocli:$piocliVersion"
+    liquibaseRuntime "org.postgresql:postgresql:$postgresqlConVersion"
+	
+	compileOnly "org.projectlombok:lombok:$lombokVersion"
+	annotationProcessor "org.projectlombok:lombok:$lombokVersion"
+	
+	implementation "org.mapstruct:mapstruct:$mapStructVersion"
+    annotationProcessor "org.mapstruct:mapstruct-processor:$mapStructVersion"	
+    
+    annotationProcessor "org.projectlombok:lombok-mapstruct-binding:$lombokMapstructBindingVersion"
+	
+	testImplementation "org.springframework.boot:spring-boot-starter-test"
+	
+	testImplementation "org.testcontainers:postgresql:$testcontainersPostgresVersion"
+	testImplementation "org.liquibase:liquibase-core:$liquibaseVersion"
+}
+
+liquibase {
+  activities {
+    sales {
+    	  changeLogFile "/src/main/resources/liquibase/db-news-changelog.xml"
+          driver "org.postgresql.Driver"
+		  url "jdbc:postgresql://localhost:5432/news?useUnicode=true&characterEncoding=UTF-8"
+		  username "admin"
+          password "admin"
+    }
+  }
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
