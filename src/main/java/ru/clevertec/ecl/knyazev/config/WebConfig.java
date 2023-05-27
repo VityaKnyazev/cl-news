@@ -7,6 +7,7 @@ import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.web.config.PageableHandlerMethodArgumentResolverCustomizer;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
@@ -79,4 +80,9 @@ public class WebConfig {
 
 		return transactionManager;
 	}
+	
+	@Bean
+    PageableHandlerMethodArgumentResolverCustomizer pageableResolverCustomizer() {
+        return pageableResolver -> pageableResolver.setOneIndexedParameters(true);
+    }
 }

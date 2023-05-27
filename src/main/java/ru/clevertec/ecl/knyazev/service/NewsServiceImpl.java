@@ -1,15 +1,17 @@
 package ru.clevertec.ecl.knyazev.service;
 
-import java.awt.print.Pageable;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-import lombok.extern.log4j.Log4j2;
 import lombok.extern.slf4j.Slf4j;
 import ru.clevertec.ecl.knyazev.dto.NewsDTO;
 import ru.clevertec.ecl.knyazev.dto.mapper.NewsMapper;
@@ -20,7 +22,7 @@ import ru.clevertec.ecl.knyazev.service.exception.ServiceException;
 @Service
 @NoArgsConstructor
 @AllArgsConstructor(onConstructor_ = { @Autowired } )
-@Log4j2
+@Slf4j
 public class NewsServiceImpl implements NewsService {
 	
 	private static final String FINDING_ERROR = "Not found";
@@ -33,6 +35,7 @@ public class NewsServiceImpl implements NewsService {
 	private NewsRepository newsRepository;
 
 	@Override
+	@Transactional(readOnly = true)
 	public NewsDTO show(Long id) throws ServiceException {
 		
 		if (id == null) {
@@ -52,22 +55,93 @@ public class NewsServiceImpl implements NewsService {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public List<NewsDTO> showAll(Pageable pageable) throws ServiceException {
-		return null;
+		
+		List<News> news = newsRepository.findAll(pageable).toList();
+		
+		if (news.isEmpty()) {
+			log.error("Error. Can't find news on given page={} and pagesize={}", pageable.getPageNumber(), pageable.getPageSize());
+			throw new ServiceException(FINDING_ERROR);
+		} else {
+			return newsMapperImpl.toNewsDTOs(news);
+		}
+		
 	}
 
 	@Override
-	public NewsDTO add(NewsDTO t) throws ServiceException {
-		return null;
+	@Transactional(rollbackFor = ServiceException.class)
+	public NewsDTO add(NewsDTO newsDTO) throws ServiceException {
+
+		if (newsDTO == null || newsDTO.getId() != null) {
+			log.error("Error saving on null news or not null news id");
+			throw new ServiceException(ADDING_ERROR);
+		}
+		
+		try {
+			News savingNews = newsMapperImpl.toNews(newsDTO);
+			savingNews.setTime(LocalDateTime.now());
+			
+			News savedNews = newsRepository.save(savingNews);
+			
+			return newsMapperImpl.toNewsDTO(savedNews);
+		} catch (DataAccessException e) {
+			log.error("Error when adding news: {}", e.getMessage(), e);
+			throw new ServiceException(ADDING_ERROR);
+		}
 	}
 
 	@Override
-	public NewsDTO change(NewsDTO t) throws ServiceException {
-		return null;
+	@Transactional(rollbackFor = ServiceException.class)
+	public NewsDTO change(NewsDTO newsDTO) throws ServiceException {
+		
+		if (newsDTO == null || newsDTO.getId() == null || newsDTO.getId() < 1L) {
+			log.error("Error changing on null news or null news id or invalid news id");
+			throw new ServiceException(CHANGING_ERROR);
+		}
+		
+		try {
+			News dbNews = newsRepository.findById(newsDTO.getId()).orElseThrow(() -> new ServiceException(CHANGING_ERROR));
+			News changingNews = newsMapperImpl.toNews(newsDTO);
+			
+			String changingNewsTitle = changingNews.getTitle();
+			String changingNewsText = changingNews.getText();
+			
+			if (changingNewsTitle != null) {
+				dbNews.setTitle(changingNewsTitle);
+			}
+			
+			if (changingNewsText != null) {
+				dbNews.setText(changingNewsText);
+			}
+			
+			return newsMapperImpl.toNewsDTO(newsRepository.save(dbNews));
+			
+		} catch (DataAccessException e) {
+			log.error("Error when changing news: {}", e.getMessage(), e);
+			throw new ServiceException(CHANGING_ERROR);
+		}
+		
 	}
 
 	@Override
-	public void remove(NewsDTO t) throws ServiceException {
+	@Transactional(rollbackFor = ServiceException.class)
+	public void remove(NewsDTO newsDTO) throws ServiceException {
+				
+		if (newsDTO == null || newsDTO.getId() == null || newsDTO.getId() < 1L) {
+			log.error("Error removing on null news or null news id or invalid news id");
+			throw new ServiceException(REMOVING_ERROR);
+		}
+		
+		try {
+			News dbNews = newsRepository.findById(newsDTO.getId()).orElseThrow(() -> new ServiceException(REMOVING_ERROR));
+			
+			newsRepository.delete(dbNews);
+			
+		} catch (DataAccessException e) {
+			log.error("Error when removing news: {}", e.getMessage(), e);
+			throw new ServiceException(REMOVING_ERROR);
+		}
 		
 	}	
 

@@ -1,7 +1,8 @@
 package ru.clevertec.ecl.knyazev.service;
 
-import java.awt.print.Pageable;
 import java.util.List;
+
+import org.springframework.data.domain.Pageable;
 
 import ru.clevertec.ecl.knyazev.service.exception.ServiceException;
 

@@ -1,13 +1,14 @@
 spring:
-  profiles:
-    active: "dev"
-
+   profiles:
+      active: "dev"
+                  
 ---
 
 spring:
    config:
       activate:
-         on-profile: "dev"
+         on-profile: "dev" 
+
 connection:
    db:
       driverClassName: org.postgresql.Driver
@@ -23,5 +24,10 @@ connection:
       showSql: true
       transactionIsolationValue: 2
 
----         
+---      
+
+spring:
+   config:
+      activate:
+         on-profile: "test"    
          

@@ -1,5 +1,8 @@
 package ru.clevertec.ecl.knyazev.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
@@ -14,6 +17,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @EqualsAndHashCode
+@JsonInclude(value = Include.NON_NULL)
 public class CommentDTO {
 	
 	@Positive(message = "Message id must be equals to or above 1")
