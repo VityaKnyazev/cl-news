@@ -23,80 +23,82 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-import ru.clevertec.ecl.knyazev.dto.NewsDTO;
-import ru.clevertec.ecl.knyazev.service.NewsService;
+import ru.clevertec.ecl.knyazev.dto.CommentDTO;
+import ru.clevertec.ecl.knyazev.service.CommentService;
 import ru.clevertec.ecl.knyazev.service.exception.ServiceException;
 
 @RestController
 @NoArgsConstructor
 @AllArgsConstructor(onConstructor_ = { @Autowired })
 @Validated
-public class NewsController {
+public class CommentController {
 	
 	private static final int DEFAULT_PAGE = 0;
 	private static final int DEFAULT_PAGE_SIZE = 3;
 	
-	private NewsService newsServiceImpl;
+	private CommentService commentServiceImpl;
 	
-	@GetMapping(value = "/news/{id}")
-	public ResponseEntity<?> getNews(@PathVariable 
-			                         @Positive(message = "News id must be greater than or equals to 1") 
+	@GetMapping(value = "/comments/{id}")
+	public ResponseEntity<?> getComment(@PathVariable 
+			                         @Positive(message = "Comment id must be greater than or equals to 1") 
 	                                 Long id) {		
 		
 		try {
-			NewsDTO newsDTO = newsServiceImpl.show(id);
-			return ResponseEntity.ok().body(newsDTO);
+			CommentDTO commentDTO = commentServiceImpl.show(id);
+			return ResponseEntity.ok().body(commentDTO);
 		} catch (ServiceException e) {
 			return ResponseEntity.badRequest().body(e.getMessage());
 		}
 		
 	}
 	
-	@GetMapping(value = "/news")
-	public ResponseEntity<?> getNews(@RequestParam(required = false, name = "text_part") @Size(min = 3, max = 100, message = "text part must be above or equals to 3 and less than or equals to 100 symbols") String textPart,
-									 @PageableDefault(page = DEFAULT_PAGE, size = DEFAULT_PAGE_SIZE) 
-	                                 @SortDefault(sort = "title") 
-	                                 Pageable pageable) {		
+	@GetMapping(value = "/comments")
+	public ResponseEntity<?> getComments(@RequestParam(required = false, name = "text_part") @Size(min = 3, max = 100, 
+	                                                   message = "text part must be above or equals to 3 and less than or equals to 100 symbols") String textPart,
+									     @RequestParam(required = false, name = "news_id") @Positive(message = "news id must be above or equals to 1") Long newsId,
+									     @PageableDefault(page = DEFAULT_PAGE, size = DEFAULT_PAGE_SIZE) 
+	                                     @SortDefault(sort = "time") 
+	                                     Pageable pageable) {		
 		
 		try {
-			List<NewsDTO> newsDTO = newsServiceImpl.showAllByTextPart(textPart, pageable);
-			return ResponseEntity.ok().body(newsDTO);
+			List<CommentDTO> commentDTO = commentServiceImpl.showAllByRequestParams(newsId, textPart, pageable);
+			return ResponseEntity.ok().body(commentDTO);
 		} catch (ServiceException e) {
 			return ResponseEntity.badRequest().body(e.getMessage());
 		}
 		
 	}
 	
-	@PostMapping(value = "/news")
-	public ResponseEntity<?> addNews(@Valid @RequestBody NewsDTO newsDTO) {
+	@PostMapping(value = "/comments")
+	public ResponseEntity<?> addComment(@Valid @RequestBody CommentDTO commentDTO) {
 		
 		try {
-			NewsDTO savedNewsDTO = newsServiceImpl.add(newsDTO);
+			CommentDTO savedCommentDTO = commentServiceImpl.add(commentDTO);
 			return ResponseEntity.status(HttpStatus.CREATED)
-					.body(savedNewsDTO);
+					             .body(savedCommentDTO);
 		} catch (ServiceException e) {
 			return ResponseEntity.badRequest().body(e.getMessage());
 		}
 		
 	}
 	
-	@PutMapping("/news")
-	public ResponseEntity<?> changeGiftCertificate(@Valid @RequestBody NewsDTO newsDTO) {
+	@PutMapping("/comments")
+	public ResponseEntity<?> changeComment(@Valid @RequestBody CommentDTO commentDTO) {
 		
 		try {
-			NewsDTO updatedNewsDTO = newsServiceImpl.change(newsDTO);
-			return ResponseEntity.ok().body(updatedNewsDTO);
+			CommentDTO updatedCommentDTO = commentServiceImpl.change(commentDTO);
+			return ResponseEntity.ok().body(updatedCommentDTO);
 		} catch (ServiceException e) {
 			return ResponseEntity.badRequest().body(e.getMessage());
 		}
 		
 	}
 	
-	@DeleteMapping("/news")
-	public ResponseEntity<?> removeNews(@Valid @RequestBody NewsDTO newsDTO) {
+	@DeleteMapping("/comments")
+	public ResponseEntity<?> removeComment(@Valid @RequestBody CommentDTO commentDTO) {
 
 		try {
-			newsServiceImpl.remove(newsDTO);
+			commentServiceImpl.remove(commentDTO);
 			return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 		} catch (ServiceException e) {
 			return ResponseEntity.notFound().build();

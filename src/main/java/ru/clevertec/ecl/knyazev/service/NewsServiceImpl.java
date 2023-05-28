@@ -1,6 +1,7 @@
 package ru.clevertec.ecl.knyazev.service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -67,6 +68,30 @@ public class NewsServiceImpl implements NewsService {
 			return newsMapperImpl.toNewsDTOs(news);
 		}
 		
+	}
+	
+	@Override
+	public List<NewsDTO> showAllByTextPart(String textPart, Pageable pageable) throws ServiceException {
+		
+		List<NewsDTO> newsDTO = new ArrayList<>();
+		
+		if (textPart != null && !textPart.isBlank()) {
+			textPart = "%" + textPart + "%";
+			
+			List<News> news = newsRepository.findByPartNewsText(textPart, pageable);
+			
+			if (news.isEmpty()) {
+				log.error("Error. Can't find news on given text part={}, page={} and pagesize={}", textPart, pageable.getPageNumber(), pageable.getPageSize());
+				throw new ServiceException(FINDING_ERROR);
+			} else {
+				newsDTO = newsMapperImpl.toNewsDTOs(news);
+			}
+			
+		} else {
+			newsDTO = showAll(pageable);
+		}
+		
+		return newsDTO;
 	}
 
 	@Override

@@ -14,7 +14,10 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -26,6 +29,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.testcontainers.shaded.com.google.common.collect.Lists;
 
 import ru.clevertec.ecl.knyazev.dto.NewsDTO;
 import ru.clevertec.ecl.knyazev.dto.mapper.NewsMapper;
@@ -88,7 +92,8 @@ public class NewsServiceImplTest {
 	public void checkShowShouldThrowServiceExceptionOnNullId() {
 		Long invalidNewsId = null;
 		
-		assertThatExceptionOfType(ServiceException.class).isThrownBy(() -> newsServiceImpl.show(invalidNewsId));
+		assertThatExceptionOfType(ServiceException.class).isThrownBy(() -> 
+		                                                  newsServiceImpl.show(invalidNewsId));
 	}
 	
 	@Test
@@ -185,6 +190,120 @@ public class NewsServiceImplTest {
 	}
 	
 	@Test
+	public void checkShowAllByTextPartShouldReturnNewsDTOsOnNews() throws ServiceException {
+		
+		List<News> expectedNewsList = new ArrayList<>() {
+			
+			private static final long serialVersionUID = -213528847612888926L;
+			
+		{
+			add(News.builder()
+			.id(2L)
+			.title("Антон Павлович - космонавт")
+			.text("Наш Павлович летит в космос...")
+			.time(LocalDateTime.now())
+			.comments(new ArrayList<>() {
+				
+				private static final long serialVersionUID = 1L;
+
+			{
+				add(Comment.builder()
+						   .id(8L)
+						   .text("Еще раз один")
+						   .userName("Sanya")
+						   .time(LocalDateTime.now())
+						   .build());
+			}})
+			.build());		
+		}};
+		
+		Mockito.when(newsRepositoryMock.findByPartNewsText(Mockito.anyString(), Mockito.any(Pageable.class)))
+		       .thenReturn(expectedNewsList);
+		
+		String inputTextPart = "Павлович летит";
+		
+		int inputPage = 1;
+		int inputPageSize = 3;
+		String inputSortOrder = "title,asc";
+		
+		Pageable inputPageable = PageRequest.of(inputPage, inputPageSize, Sort.by(inputSortOrder));
+		
+		List<NewsDTO> actualNewsDTOs = newsServiceImpl.showAllByTextPart(inputTextPart, inputPageable);
+		
+		assertAll(
+				() -> assertThat(actualNewsDTOs).isNotEmpty(),
+				() -> assertThat(actualNewsDTOs).hasSize(1)
+			);
+	}
+	
+	@ParameterizedTest
+	@NullSource
+	@EmptySource
+	@ValueSource(strings = { "", " ", "  ", "   " })
+	public void checkShowAllByTextPartShouldReturnShowAllOnInvalidNewsTextPart(String invalidTextPart) throws ServiceException {
+		
+		List<News> expectedNewsList = new ArrayList<>() {
+			
+			private static final long serialVersionUID = -213528847612888926L;
+			
+		{
+			add(News.builder()
+			.id(2L)
+			.title("Антон Павлович - космонавт")
+			.text("Наш Павлович летит в космос...")
+			.time(LocalDateTime.now())
+			.comments(new ArrayList<>() {
+				
+				private static final long serialVersionUID = 1L;
+
+			{
+				add(Comment.builder()
+						   .id(8L)
+						   .text("Еще раз один")
+						   .userName("Sanya")
+						   .time(LocalDateTime.now())
+						   .build());
+			}})
+			.build());		
+		}};		
+		
+		Page<News> pageNews = new PageImpl<>(expectedNewsList);
+		
+		Mockito.when(newsRepositoryMock.findAll(Mockito.any(Pageable.class)))
+		       .thenReturn(pageNews);
+		
+		int inputPage = 1;
+		int inputPageSize = 3;
+		String inputSortOrder = "title,asc";
+		
+		Pageable inputPageable = PageRequest.of(inputPage, inputPageSize, Sort.by(inputSortOrder));
+		
+		List<NewsDTO> actualNewsDTOs = newsServiceImpl.showAllByTextPart(invalidTextPart, inputPageable);		
+		
+		Mockito.verify(newsRepositoryMock).findAll(inputPageable);		
+		assertThat(actualNewsDTOs).isNotEmpty();		
+	}
+	
+	@Test
+	public void checkShowAllByTextPartShouldThrowServiceExceptionWhenNotFoundOnNewsTextPart() throws ServiceException {
+		
+		Mockito.when(newsRepositoryMock.findByPartNewsText(Mockito.anyString(), 
+				                                           Mockito.any(Pageable.class)))
+			   .thenReturn(Lists.newArrayList());
+		
+		String inputTextPart = "всем привет";
+		
+		int inputPage = 19;
+		int inputPageSize = 3;
+		String inputSortOrder = "title,asc";
+		
+		Pageable inputPageable = PageRequest.of(inputPage, inputPageSize, Sort.by(inputSortOrder));
+		
+		assertThatExceptionOfType(ServiceException.class).isThrownBy(() -> 
+		                                                 newsServiceImpl.showAllByTextPart(inputTextPart, inputPageable));
+	}
+	
+	@Test
 	public void checkAddShouldReturnNewsDTO() throws ServiceException {
 		
 		Long expectedNewsId = 8L;
@@ -217,7 +336,8 @@ public class NewsServiceImplTest {
 	@MethodSource("getInvalidNewsDTOForAdding")
 	public void checkAddShouldThrowServiceExceptioOnInvalidNewsDTO(NewsDTO invalidNewsDTO) {
 		
-		assertThatExceptionOfType(ServiceException.class).isThrownBy(() -> newsServiceImpl.add(invalidNewsDTO));
+		assertThatExceptionOfType(ServiceException.class).isThrownBy(() -> 
+		                                                  newsServiceImpl.add(invalidNewsDTO));
 	}
 	
 	@Test
@@ -234,7 +354,8 @@ public class NewsServiceImplTest {
 				                      .text("Должен выбросить исключение при сохранении меня в базу..")
 				                      .build();
 		
-		assertThatExceptionOfType(ServiceException.class).isThrownBy(() -> newsServiceImpl.add(inputNewsDTO));
+		assertThatExceptionOfType(ServiceException.class).isThrownBy(() -> 
+		                                                  newsServiceImpl.add(inputNewsDTO));
 	}
 	
 	@Test
@@ -279,7 +400,8 @@ public class NewsServiceImplTest {
 	@MethodSource("getInvalidNewsDTOForChanging")
 	public void checkChangeShouldThrowServiceExceptionOnInvalidNewsDTO(NewsDTO invalidNewDTO) {
 		
-		assertThatExceptionOfType(ServiceException.class).isThrownBy(() -> newsServiceImpl.change(invalidNewDTO));
+		assertThatExceptionOfType(ServiceException.class).isThrownBy(() -> 
+		                                                  newsServiceImpl.change(invalidNewDTO));
 		
 	}
 	
@@ -293,7 +415,8 @@ public class NewsServiceImplTest {
 									 .id(25615L)
 									 .build();
 		
-		assertThatExceptionOfType(ServiceException.class).isThrownBy(() -> newsServiceImpl.change(inputNewDTO));
+		assertThatExceptionOfType(ServiceException.class).isThrownBy(() -> 
+		                                                  newsServiceImpl.change(inputNewDTO));
 		
 	}
 	
@@ -321,7 +444,8 @@ public class NewsServiceImplTest {
 				                      .text("Должен выбросить исключение при обновлении меня в базе..")
 				                      .build();
 		
-		assertThatExceptionOfType(ServiceException.class).isThrownBy(() -> newsServiceImpl.change(inputNewsDTO));
+		assertThatExceptionOfType(ServiceException.class).isThrownBy(() -> 
+		                                                  newsServiceImpl.change(inputNewsDTO));
 	}
 	
 	@Test
@@ -350,7 +474,8 @@ public class NewsServiceImplTest {
 	@MethodSource("getInvalidNewsDTOForRemoving")
 	public void checkRemoveShouldThrowServiceExceptionOnInvalidNewsDTO(NewsDTO invalidNewDTO) {
 		
-		assertThatExceptionOfType(ServiceException.class).isThrownBy(() -> newsServiceImpl.remove(invalidNewDTO));
+		assertThatExceptionOfType(ServiceException.class).isThrownBy(() -> 
+		                                                  newsServiceImpl.remove(invalidNewDTO));
 		
 	}
 	
@@ -364,7 +489,8 @@ public class NewsServiceImplTest {
 									  .id(7L)
 									  .build();
 		
-		assertThatExceptionOfType(ServiceException.class).isThrownBy(() -> newsServiceImpl.remove(inputNewsDTO));
+		assertThatExceptionOfType(ServiceException.class).isThrownBy(() -> 
+		                                                  newsServiceImpl.remove(inputNewsDTO));
 		
 	}
 	
@@ -392,7 +518,8 @@ public class NewsServiceImplTest {
 									  .id(7L)
 				                      .build();
 		
-		assertThatExceptionOfType(ServiceException.class).isThrownBy(() -> newsServiceImpl.remove(inputNewsDTO));
+		assertThatExceptionOfType(ServiceException.class).isThrownBy(() -> 
+		                                                  newsServiceImpl.remove(inputNewsDTO));
 	}
 	
 	private static Stream<NewsDTO> getInvalidNewsDTOForAdding() {
