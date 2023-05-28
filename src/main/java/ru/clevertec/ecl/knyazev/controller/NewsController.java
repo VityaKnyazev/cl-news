@@ -40,11 +40,14 @@ public class NewsController {
 	
 	@GetMapping(value = "/news/{id}")
 	public ResponseEntity<?> getNews(@PathVariable 
-			                         @Positive(message = "News id must be greater than or equals to 1") 
-	                                 Long id) {		
+			                         @Positive(message = "News id must be greater than or equals to 1")
+	                                 Long id,
+	                                 @PageableDefault(page = DEFAULT_PAGE, size = DEFAULT_PAGE_SIZE)
+									 @SortDefault(sort = "time")
+									 Pageable pageable) {		
 		
 		try {
-			NewsDTO newsDTO = newsServiceImpl.show(id);
+			NewsDTO newsDTO = newsServiceImpl.show(id, pageable);
 			return ResponseEntity.ok().body(newsDTO);
 		} catch (ServiceException e) {
 			return ResponseEntity.badRequest().body(e.getMessage());

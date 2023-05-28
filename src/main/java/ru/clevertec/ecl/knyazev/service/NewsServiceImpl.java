@@ -15,7 +15,9 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ru.clevertec.ecl.knyazev.dto.NewsDTO;
+import ru.clevertec.ecl.knyazev.dto.mapper.CommentNewsMapper;
 import ru.clevertec.ecl.knyazev.dto.mapper.NewsMapper;
+import ru.clevertec.ecl.knyazev.entity.Comment;
 import ru.clevertec.ecl.knyazev.entity.News;
 import ru.clevertec.ecl.knyazev.repository.NewsRepository;
 import ru.clevertec.ecl.knyazev.service.exception.ServiceException;
@@ -32,8 +34,11 @@ public class NewsServiceImpl implements NewsService {
 	private static final String REMOVING_ERROR = "Error on removing news";
 	
 	private NewsMapper newsMapperImpl;
+	private CommentNewsMapper commentNewsMapperImpl;
 	
 	private NewsRepository newsRepository;
+	
+	private CommentService commentServiceImpl;
 
 	@Override
 	@Transactional(readOnly = true)
@@ -54,6 +59,17 @@ public class NewsServiceImpl implements NewsService {
 		}
 		
 	}
+	
+	@Override
+	@Transactional(readOnly = true)
+	public NewsDTO show(Long id, Pageable commentsPageable) throws ServiceException {
+		
+		List<Comment> comments = commentServiceImpl.showAllByNewsId(id, commentsPageable);
+		
+		News news = commentNewsMapperImpl.toNews(comments);
+		
+		return newsMapperImpl.toNewsDTO(news);
+	}
 
 	@Override
 	@Transactional(readOnly = true)
@@ -71,6 +87,7 @@ public class NewsServiceImpl implements NewsService {
 	}
 	
 	@Override
+	@Transactional(readOnly = true)
 	public List<NewsDTO> showAllByTextPart(String textPart, Pageable pageable) throws ServiceException {
 		
 		List<NewsDTO> newsDTO = new ArrayList<>();
@@ -78,7 +95,7 @@ public class NewsServiceImpl implements NewsService {
 		if (textPart != null && !textPart.isBlank()) {
 			textPart = "%" + textPart + "%";
 			
-			List<News> news = newsRepository.findByPartNewsText(textPart, pageable);
+			List<News> news = newsRepository.findAllByPartNewsText(textPart, pageable);
 			
 			if (news.isEmpty()) {
 				log.error("Error. Can't find news on given text part={}, page={} and pagesize={}", textPart, pageable.getPageNumber(), pageable.getPageSize());

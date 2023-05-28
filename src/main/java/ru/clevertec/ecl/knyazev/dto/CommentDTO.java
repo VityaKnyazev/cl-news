@@ -3,7 +3,6 @@ package ru.clevertec.ecl.knyazev.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -27,12 +26,10 @@ public class CommentDTO {
 
 	private String createDate;
 	
-	@NotBlank(message = "Error, comment text is invalid")
 	@Size(min = 3, max = 800, message = "Comment title must contains from 3 to 800 symbols")
 	private String text;
 	
-	@NotBlank(message = "Error, user name is invalid")
-	@Size(min = 3, max = 800, message = "Comment user name must contains from 3 to 35 symbols")
+	@Size(min = 3, max = 35, message = "Comment user name must contains from 3 to 35 symbols")
 	private String userName;
 	
 	private NewsDTO newsDTO;

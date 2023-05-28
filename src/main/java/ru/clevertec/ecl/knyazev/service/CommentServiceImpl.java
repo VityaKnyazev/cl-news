@@ -80,7 +80,7 @@ public class CommentServiceImpl implements CommentService {
 		if (textPart != null && !textPart.isBlank()) {
 			textPart = "%" + textPart + "%";
 			
-			List<Comment> comments = commentRepository.findByPartNewsText(textPart, pageable);
+			List<Comment> comments = commentRepository.findAllByPartCommentText(textPart, pageable);
 			
 			if (comments.isEmpty()) {
 				log.error("Error. Can't find comments on given text part={}, page={} and pagesize={}", textPart, pageable.getPageNumber(), pageable.getPageSize());
@@ -98,45 +98,22 @@ public class CommentServiceImpl implements CommentService {
 	
 	@Override
 	@Transactional(readOnly = true)
-	public List<CommentDTO> showAllByNewsId(Long newsId, Pageable pageable) throws ServiceException {
+	public List<Comment> showAllByNewsId(Long newsId, Pageable pageable) throws ServiceException {
 
-		List<CommentDTO> commentsDTO = new ArrayList<>();
-		
-		if (newsId != null) {
-			
-			List<Comment> comments = commentRepository.findByNewsId(newsId, pageable);
-			
-			if (comments.isEmpty()) {
-				log.error("Error. Can't find comments on given news id={}, page={} and pagesize={}", newsId, pageable.getPageNumber(), pageable.getPageSize());
-				throw new ServiceException(FINDING_ERROR);
-			} else {
-				commentsDTO = commentMapperImpl.toCommentsDTO(comments);
-			}
-			
-		} else {
-			commentsDTO = showAll(pageable);
-		}
-		
-		return commentsDTO;		
-	}
-	
-	@Override
-	@Transactional(readOnly = true)
-	public List<CommentDTO> showAllByRequestParams(Long newsId, String textPart, Pageable pageable)
-			throws ServiceException {
-		
-		if (newsId != null && textPart != null) {
-			log.error("Invalid subsequence of request params");
+		if (newsId == null) {
+			log.error("Error searching comments on null news id");
 			throw new ServiceException(FINDING_ERROR);
 		}
 		
-		if (newsId != null) {
-			return showAllByNewsId(newsId, pageable);
-		} else if (textPart != null) {
-			return showAllByTextPart(textPart, pageable);
-		} else {
-			return showAll(pageable);
+		List<Comment> comments = commentRepository.findAllByNewsId(newsId, pageable);
+		
+		if (comments.isEmpty()) {
+			log.error("Error. Can't find comments on given page={} and pagesize={}", pageable.getPageNumber(), pageable.getPageSize());
+			throw new ServiceException(FINDING_ERROR);
 		}
+
+		return comments;
+		
 	}
 
 	@Override

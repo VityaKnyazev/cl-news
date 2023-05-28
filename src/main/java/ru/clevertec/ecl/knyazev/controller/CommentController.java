@@ -55,13 +55,12 @@ public class CommentController {
 	@GetMapping(value = "/comments")
 	public ResponseEntity<?> getComments(@RequestParam(required = false, name = "text_part") @Size(min = 3, max = 100, 
 	                                                   message = "text part must be above or equals to 3 and less than or equals to 100 symbols") String textPart,
-									     @RequestParam(required = false, name = "news_id") @Positive(message = "news id must be above or equals to 1") Long newsId,
 									     @PageableDefault(page = DEFAULT_PAGE, size = DEFAULT_PAGE_SIZE) 
 	                                     @SortDefault(sort = "time") 
 	                                     Pageable pageable) {		
 		
 		try {
-			List<CommentDTO> commentDTO = commentServiceImpl.showAllByRequestParams(newsId, textPart, pageable);
+			List<CommentDTO> commentDTO = commentServiceImpl.showAllByTextPart(textPart, pageable);
 			return ResponseEntity.ok().body(commentDTO);
 		} catch (ServiceException e) {
 			return ResponseEntity.badRequest().body(e.getMessage());

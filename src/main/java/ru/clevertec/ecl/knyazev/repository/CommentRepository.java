@@ -10,9 +10,9 @@ import ru.clevertec.ecl.knyazev.entity.Comment;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 	
-	List<Comment> findByNewsId(Long newsId, Pageable pageable);
+	List<Comment> findAllByNewsId(Long newsId, Pageable pageable);
 
 	@Query(value = "SELECT c FROM Comment c WHERE c.text LIKE ?1")
-	List<Comment> findByPartNewsText(String textPart, Pageable pageable);
+	List<Comment> findAllByPartCommentText(String textPart, Pageable pageable);
 	
 }

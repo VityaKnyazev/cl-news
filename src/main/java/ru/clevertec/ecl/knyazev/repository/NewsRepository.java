@@ -11,6 +11,6 @@ import ru.clevertec.ecl.knyazev.entity.News;
 public interface NewsRepository extends JpaRepository<News, Long> {
 	
 	@Query(value = "SELECT n FROM News n WHERE n.text LIKE ?1")
-	List<News> findByPartNewsText(String partNewsText, Pageable pageable);
+	List<News> findAllByPartNewsText(String partNewsText, Pageable pageable);
 	
 }

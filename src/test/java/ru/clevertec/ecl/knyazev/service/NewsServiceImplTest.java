@@ -32,6 +32,8 @@ import org.springframework.data.domain.Sort;
 import org.testcontainers.shaded.com.google.common.collect.Lists;
 
 import ru.clevertec.ecl.knyazev.dto.NewsDTO;
+import ru.clevertec.ecl.knyazev.dto.mapper.CommentNewsMapper;
+import ru.clevertec.ecl.knyazev.dto.mapper.CommentNewsMapperImpl;
 import ru.clevertec.ecl.knyazev.dto.mapper.NewsMapper;
 import ru.clevertec.ecl.knyazev.dto.mapper.NewsMapperImpl;
 import ru.clevertec.ecl.knyazev.entity.Comment;
@@ -47,6 +49,12 @@ public class NewsServiceImplTest {
 	
 	@Spy
 	private NewsMapper newsMapperImpl = new NewsMapperImpl();
+	
+	@Spy
+	private CommentNewsMapper commentNewsMapperImpl = new CommentNewsMapperImpl();
+	
+	@Mock
+	private CommentService commentServiceImplMock;
 
 	@InjectMocks
 	private NewsServiceImpl newsServiceImpl;
@@ -106,6 +114,47 @@ public class NewsServiceImplTest {
 	       	   .thenReturn(expectedNews);
 		
 		assertThatExceptionOfType(ServiceException.class).isThrownBy(() -> newsServiceImpl.show(inputNewsId));
+	}
+	
+	@Test
+	public void checkShowShouldReturnNewsDTOWithCommentsPagination() throws ServiceException {
+		List<Comment> expectedComments = List.of(
+					Comment.builder()
+						   .id(2L)
+						   .news(News.builder()
+								     .id(1L)
+								     .title("Об открытии двери")
+								     .text("Научное обоснование метода открытия двери...")
+								     .build())
+						   .text("Прекрасное обоснование непонятного.")
+						   .userName("Vova")
+						   .build(),
+				    Comment.builder()
+						   .id(5L)
+						   .news(News.builder()
+								     .id(1L)
+								     .title("Об открытии двери")
+								     .text("Научное обоснование метода открытия двери...")
+								     .build())
+						   .text("Непонятная интерпретация явления дождя.")
+						   .userName("Kolya")
+						   .build());
+		
+		Mockito.when(commentServiceImplMock.showAllByNewsId(Mockito.anyLong(), 
+															Mockito.any(Pageable.class)))
+			   .thenReturn(expectedComments);
+		
+		Long inputNewsId = 3L;
+		
+		int inputPage = 1;
+		int inputPageSize = 3;
+		String inputCommentsSortOrder = "time,asc";
+		
+		Pageable commentsPageable = PageRequest.of(inputPage, inputPageSize, Sort.by(inputCommentsSortOrder));
+		
+		NewsDTO actualNewsDTO = newsServiceImpl.show(inputNewsId, commentsPageable);
+		
+		assertThat(actualNewsDTO.getComments()).hasSize(2);
 	}
 	
 	@Test
@@ -190,7 +239,7 @@ public class NewsServiceImplTest {
 	}
 	
 	@Test
-	public void checkShowAllByTextPartShouldReturnNewsDTOsOnNews() throws ServiceException {
+	public void checkShowAllByTextPartShouldReturnNewsDTOs() throws ServiceException {
 		
 		List<News> expectedNewsList = new ArrayList<>() {
 			
@@ -217,7 +266,7 @@ public class NewsServiceImplTest {
 			.build());		
 		}};
 		
-		Mockito.when(newsRepositoryMock.findByPartNewsText(Mockito.anyString(), Mockito.any(Pageable.class)))
+		Mockito.when(newsRepositoryMock.findAllByPartNewsText(Mockito.anyString(), Mockito.any(Pageable.class)))
 		       .thenReturn(expectedNewsList);
 		
 		String inputTextPart = "Павлович летит";
@@ -287,7 +336,7 @@ public class NewsServiceImplTest {
 	@Test
 	public void checkShowAllByTextPartShouldThrowServiceExceptionWhenNotFoundOnNewsTextPart() throws ServiceException {
 		
-		Mockito.when(newsRepositoryMock.findByPartNewsText(Mockito.anyString(), 
+		Mockito.when(newsRepositoryMock.findAllByPartNewsText(Mockito.anyString(), 
 				                                           Mockito.any(Pageable.class)))
 			   .thenReturn(Lists.newArrayList());
 		
