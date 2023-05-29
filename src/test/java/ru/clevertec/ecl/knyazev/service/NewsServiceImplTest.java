@@ -239,7 +239,7 @@ public class NewsServiceImplTest {
 	}
 	
 	@Test
-	public void checkShowAllByTextPartShouldReturnNewsDTOs() throws ServiceException {
+	public void checkShowAllOrByTextPartShouldReturnNewsDTOs() throws ServiceException {
 		
 		List<News> expectedNewsList = new ArrayList<>() {
 			
@@ -277,7 +277,7 @@ public class NewsServiceImplTest {
 		
 		Pageable inputPageable = PageRequest.of(inputPage, inputPageSize, Sort.by(inputSortOrder));
 		
-		List<NewsDTO> actualNewsDTOs = newsServiceImpl.showAllByTextPart(inputTextPart, inputPageable);
+		List<NewsDTO> actualNewsDTOs = newsServiceImpl.showAllOrByTextPart(inputTextPart, inputPageable);
 		
 		assertAll(
 				() -> assertThat(actualNewsDTOs).isNotEmpty(),
@@ -289,7 +289,7 @@ public class NewsServiceImplTest {
 	@NullSource
 	@EmptySource
 	@ValueSource(strings = { "", " ", "  ", "   " })
-	public void checkShowAllByTextPartShouldReturnShowAllOnInvalidNewsTextPart(String invalidTextPart) throws ServiceException {
+	public void checkShowAllOrByTextPartShouldReturnShowAllOnInvalidNewsTextPart(String invalidTextPart) throws ServiceException {
 		
 		List<News> expectedNewsList = new ArrayList<>() {
 			
@@ -327,14 +327,14 @@ public class NewsServiceImplTest {
 		
 		Pageable inputPageable = PageRequest.of(inputPage, inputPageSize, Sort.by(inputSortOrder));
 		
-		List<NewsDTO> actualNewsDTOs = newsServiceImpl.showAllByTextPart(invalidTextPart, inputPageable);		
+		List<NewsDTO> actualNewsDTOs = newsServiceImpl.showAllOrByTextPart(invalidTextPart, inputPageable);		
 		
 		Mockito.verify(newsRepositoryMock).findAll(inputPageable);		
 		assertThat(actualNewsDTOs).isNotEmpty();		
 	}
 	
 	@Test
-	public void checkShowAllByTextPartShouldThrowServiceExceptionWhenNotFoundOnNewsTextPart() throws ServiceException {
+	public void checkShowAllOrByTextPartShouldThrowServiceExceptionWhenNotFoundOnNewsTextPart() throws ServiceException {
 		
 		Mockito.when(newsRepositoryMock.findAllByPartNewsText(Mockito.anyString(), 
 				                                           Mockito.any(Pageable.class)))
@@ -349,7 +349,7 @@ public class NewsServiceImplTest {
 		Pageable inputPageable = PageRequest.of(inputPage, inputPageSize, Sort.by(inputSortOrder));
 		
 		assertThatExceptionOfType(ServiceException.class).isThrownBy(() -> 
-		                                                 newsServiceImpl.showAllByTextPart(inputTextPart, inputPageable));
+		                                                 newsServiceImpl.showAllOrByTextPart(inputTextPart, inputPageable));
 	}
 	
 	@Test

@@ -88,7 +88,7 @@ public class NewsServiceImpl implements NewsService {
 	
 	@Override
 	@Transactional(readOnly = true)
-	public List<NewsDTO> showAllByTextPart(String textPart, Pageable pageable) throws ServiceException {
+	public List<NewsDTO> showAllOrByTextPart(String textPart, Pageable pageable) throws ServiceException {
 		
 		List<NewsDTO> newsDTO = new ArrayList<>();
 		

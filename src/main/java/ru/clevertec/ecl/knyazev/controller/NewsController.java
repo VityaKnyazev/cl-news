@@ -56,13 +56,13 @@ public class NewsController {
 	}
 	
 	@GetMapping(value = "/news")
-	public ResponseEntity<?> getNews(@RequestParam(required = false, name = "text_part") @Size(min = 3, max = 100, message = "text part must be above or equals to 3 and less than or equals to 100 symbols") String textPart,
+	public ResponseEntity<?> getAllNews(@RequestParam(required = false, name = "text_part") @Size(min = 3, max = 100, message = "text part must be above or equals to 3 and less than or equals to 100 symbols") String textPart,
 									 @PageableDefault(page = DEFAULT_PAGE, size = DEFAULT_PAGE_SIZE) 
 	                                 @SortDefault(sort = "title") 
 	                                 Pageable pageable) {		
 		
 		try {
-			List<NewsDTO> newsDTO = newsServiceImpl.showAllByTextPart(textPart, pageable);
+			List<NewsDTO> newsDTO = newsServiceImpl.showAllOrByTextPart(textPart, pageable);
 			return ResponseEntity.ok().body(newsDTO);
 		} catch (ServiceException e) {
 			return ResponseEntity.badRequest().body(e.getMessage());
@@ -84,7 +84,7 @@ public class NewsController {
 	}
 	
 	@PutMapping("/news")
-	public ResponseEntity<?> changeGiftCertificate(@Valid @RequestBody NewsDTO newsDTO) {
+	public ResponseEntity<?> changeNews(@Valid @RequestBody NewsDTO newsDTO) {
 		
 		try {
 			NewsDTO updatedNewsDTO = newsServiceImpl.change(newsDTO);

@@ -12,7 +12,7 @@ public interface Service<T> {
 	
 	List<T> showAll(Pageable pageable) throws ServiceException;
 	
-	List<T> showAllByTextPart(String textPart, Pageable pageable) throws ServiceException;
+	List<T> showAllOrByTextPart(String textPart, Pageable pageable) throws ServiceException;
 
 	T add(T t) throws ServiceException;
 

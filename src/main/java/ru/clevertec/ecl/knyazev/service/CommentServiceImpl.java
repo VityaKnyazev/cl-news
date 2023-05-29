@@ -73,7 +73,7 @@ public class CommentServiceImpl implements CommentService {
 	
 	@Override
 	@Transactional(readOnly = true)
-	public List<CommentDTO> showAllByTextPart(String textPart, Pageable pageable) throws ServiceException {
+	public List<CommentDTO> showAllOrByTextPart(String textPart, Pageable pageable) throws ServiceException {
 		
 		List<CommentDTO> commentsDTO = new ArrayList<>();
 		

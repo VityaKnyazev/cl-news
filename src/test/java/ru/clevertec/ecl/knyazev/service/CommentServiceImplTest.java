@@ -173,7 +173,7 @@ public class CommentServiceImplTest {
 	}
 	
 	@Test
-	public void checkShowAllByTextPartShouldReturnCommentsDTO() throws ServiceException {
+	public void checkShowAllOrByTextPartShouldReturnCommentsDTO() throws ServiceException {
 		
 		List<Comment> expectedComments = new ArrayList<>() {
 			
@@ -215,7 +215,7 @@ public class CommentServiceImplTest {
 		
 		Pageable inputPageable = PageRequest.of(inputPage, inputPageSize, Sort.by(inputSortOrder));
 		
-		List<CommentDTO> actualCommentsDTO = commentServiceImpl.showAllByTextPart(inputTextPart, inputPageable);
+		List<CommentDTO> actualCommentsDTO = commentServiceImpl.showAllOrByTextPart(inputTextPart, inputPageable);
 		
 		assertAll(
 				() -> assertThat(actualCommentsDTO).isNotEmpty(),
@@ -227,7 +227,7 @@ public class CommentServiceImplTest {
 	@NullSource
 	@EmptySource
 	@ValueSource(strings = { "", " ", "  ", "   " })
-	public void checkShowAllByTextPartShouldReturnShowAllOnInvalidCommentTextPart(String invalidTextPart) throws ServiceException {
+	public void checkShowAllOrByTextPartShouldReturnShowAllOnInvalidCommentTextPart(String invalidTextPart) throws ServiceException {
 		
 		List<Comment> expectedComments = new ArrayList<>() {
 			
@@ -269,14 +269,14 @@ public class CommentServiceImplTest {
 		
 		Pageable inputPageable = PageRequest.of(inputPage, inputPageSize, Sort.by(inputSortOrder));
 		
-		List<CommentDTO> actualCommentsDTO = commentServiceImpl.showAllByTextPart(invalidTextPart, inputPageable);		
+		List<CommentDTO> actualCommentsDTO = commentServiceImpl.showAllOrByTextPart(invalidTextPart, inputPageable);		
 		
 		Mockito.verify(commentRepositoryMock).findAll(inputPageable);		
 		assertThat(actualCommentsDTO).isNotEmpty();		
 	}
 	
 	@Test
-	public void checkShowAllByTextPartShouldThrowServiceExceptionWhenNotFoundOnCommentTextPart() throws ServiceException {
+	public void checkShowAllOrByTextPartShouldThrowServiceExceptionWhenNotFoundOnCommentTextPart() throws ServiceException {
 		
 		Mockito.when(commentRepositoryMock.findAllByPartCommentText(Mockito.anyString(), 
 				                                           Mockito.any(Pageable.class)))
@@ -291,7 +291,7 @@ public class CommentServiceImplTest {
 		Pageable inputPageable = PageRequest.of(inputPage, inputPageSize, Sort.by(inputSortOrder));
 		
 		assertThatExceptionOfType(ServiceException.class).isThrownBy(() -> 
-		                                                 commentServiceImpl.showAllByTextPart(inputTextPart, inputPageable));
+		                                                 commentServiceImpl.showAllOrByTextPart(inputTextPart, inputPageable));
 	}
 	
 	@Test

@@ -60,7 +60,7 @@ public class CommentController {
 	                                     Pageable pageable) {		
 		
 		try {
-			List<CommentDTO> commentDTO = commentServiceImpl.showAllByTextPart(textPart, pageable);
+			List<CommentDTO> commentDTO = commentServiceImpl.showAllOrByTextPart(textPart, pageable);
 			return ResponseEntity.ok().body(commentDTO);
 		} catch (ServiceException e) {
 			return ResponseEntity.badRequest().body(e.getMessage());
