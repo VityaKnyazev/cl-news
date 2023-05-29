@@ -447,10 +447,10 @@ public class NewsServiceImplTest {
 	
 	@ParameterizedTest
 	@MethodSource("getInvalidNewsDTOForChanging")
-	public void checkChangeShouldThrowServiceExceptionOnInvalidNewsDTO(NewsDTO invalidNewDTO) {
+	public void checkChangeShouldThrowServiceExceptionOnInvalidNewsDTO(NewsDTO invalidNewsDTO) {
 		
 		assertThatExceptionOfType(ServiceException.class).isThrownBy(() -> 
-		                                                  newsServiceImpl.change(invalidNewDTO));
+		                                                  newsServiceImpl.change(invalidNewsDTO));
 		
 	}
 	
@@ -460,12 +460,12 @@ public class NewsServiceImplTest {
 		Mockito.when(newsRepositoryMock.findById(Mockito.anyLong()))
 		       .thenReturn(Optional.empty());
 		
-		NewsDTO inputNewDTO = NewsDTO.builder()
+		NewsDTO inputNewsDTO = NewsDTO.builder()
 									 .id(25615L)
 									 .build();
 		
 		assertThatExceptionOfType(ServiceException.class).isThrownBy(() -> 
-		                                                  newsServiceImpl.change(inputNewDTO));
+		                                                  newsServiceImpl.change(inputNewsDTO));
 		
 	}
 	
@@ -482,7 +482,7 @@ public class NewsServiceImplTest {
 			   .thenReturn(dbNewsWrap);
 		
 		Mockito.when(newsRepositoryMock.save(Mockito.any(News.class)))
-		       .thenThrow(new DataAccessException("Constraint on saving news") {
+		       .thenThrow(new DataAccessException("Constraint on changing news") {
 
 				private static final long serialVersionUID = -1469072966712485906L;
 			});
