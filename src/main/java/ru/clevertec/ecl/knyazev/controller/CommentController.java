@@ -53,7 +53,7 @@ public class CommentController {
 	}
 	
 	@GetMapping(value = "/comments")
-	public ResponseEntity<?> getComments(@RequestParam(required = false, name = "text_part") @Size(min = 3, max = 100, 
+	public ResponseEntity<?> getAllComments(@RequestParam(required = false, name = "text_part") @Size(min = 3, max = 100, 
 	                                                   message = "text part must be above or equals to 3 and less than or equals to 100 symbols") String textPart,
 									     @PageableDefault(page = DEFAULT_PAGE, size = DEFAULT_PAGE_SIZE) 
 	                                     @SortDefault(sort = "time") 

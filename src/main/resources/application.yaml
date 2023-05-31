@@ -1,13 +1,13 @@
 spring:
    profiles:
-      active: "dev"
+      active: dev
                   
 ---
 
 spring:
    config:
       activate:
-         on-profile: "dev" 
+         on-profile: dev
 
 connection:
    db:
@@ -29,5 +29,26 @@ connection:
 spring:
    config:
       activate:
-         on-profile: "test"    
+         on-profile: test
+
+connection:
+   db:
+      driverClassName: org.postgresql.Driver
+      jdbcUrl: ${db_url}
+      username: ${db_user}
+      password: ${db_password}
+      maxPoolSize: 3
+      connectionTimeout: 3000
+   hibernate:
+      schema: none
+      sessionContext: thread
+      dialect: org.hibernate.dialect.PostgreSQLDialect
+      showSql: true
+      transactionIsolationValue: 2
+testcontainers:
+   postgresqlDockerImage: postgres:15.2
+   jdbcUrlEnvVar: db_url
+   usernameEnvVar: db_user
+   passwordEnvVar: db_password
+   liquibaseChangelogFile: /liquibase/db-test-news-changelog.xml
          

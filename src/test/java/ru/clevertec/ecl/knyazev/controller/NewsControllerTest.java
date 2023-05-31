@@ -34,13 +34,13 @@ import ru.clevertec.ecl.knyazev.service.exception.ServiceException;
 @ExtendWith(MockitoExtension.class)
 public class NewsControllerTest {
 	
+	private static final String REQUEST = "/news";
+	
 	@Mock
 	private NewsService newsServiceImplMock; 
 	
 	@InjectMocks
 	private NewsController newsController;
-	
-	private static final String REQUEST = "/news";
 	
 	private MockMvc mockMVC;
 	
@@ -161,7 +161,7 @@ public class NewsControllerTest {
 	}
 	
 	@Test
-	public void checkAddNewsShouldReturnOk() throws Exception {
+	public void checkAddNewsShouldReturnCreated() throws Exception {
 		
 		NewsDTO expectedNewsDTO = NewsDTO.builder()
                 .id(1L)
@@ -280,7 +280,7 @@ public class NewsControllerTest {
 	}
 	
 	@Test
-	public void checkRemoveNewsShouldReturnOk() throws Exception {		
+	public void checkRemoveNewsShouldReturnNoContent() throws Exception {		
 
 		Mockito.doNothing().when(newsServiceImplMock).remove(Mockito.any(NewsDTO.class));
 		
