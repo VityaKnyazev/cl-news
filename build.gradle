@@ -6,7 +6,9 @@ plugins {
 	id 'io.spring.dependency-management' version '1.1.0'
 }
 
-ext {    
+ext {   
+	springdocVersion = '2.1.0'
+ 
 	hibernateValidatorVersion = '8.0.0.Final'
 	
 	postgresqlConVersion = '42.6.0'
@@ -37,6 +39,10 @@ dependencies {
 	implementation "org.springframework.boot:spring-boot-starter-data-jpa"
 	implementation "org.springframework.boot:spring-boot-starter-data-rest"
 	implementation "org.springframework.boot:spring-boot-starter-web"
+
+	implementation("org.springframework.boot:spring-boot-starter-actuator")
+	
+	implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:$springdocVersion"
 	
 	implementation "org.hibernate.validator:hibernate-validator:$hibernateValidatorVersion"
 	

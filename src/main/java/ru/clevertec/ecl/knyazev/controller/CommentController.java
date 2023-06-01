@@ -18,6 +18,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
@@ -27,7 +30,9 @@ import ru.clevertec.ecl.knyazev.dto.CommentDTO;
 import ru.clevertec.ecl.knyazev.service.CommentService;
 import ru.clevertec.ecl.knyazev.service.exception.ServiceException;
 
+
 @RestController
+@Tag(name = "Comments", description = "Show, add, change, remove comments")
 @NoArgsConstructor
 @AllArgsConstructor(onConstructor_ = { @Autowired })
 @Validated
@@ -39,9 +44,11 @@ public class CommentController {
 	private CommentService commentServiceImpl;
 	
 	@GetMapping(value = "/comments/{id}")
-	public ResponseEntity<?> getComment(@PathVariable 
-			                         @Positive(message = "Comment id must be greater than or equals to 1") 
-	                                 Long id) {		
+	@Operation(description = "Show comment by id")
+	public ResponseEntity<?> getComment(@Parameter(description = "Comment id")
+										@PathVariable 
+			                         	@Positive(message = "Comment id must be greater than or equals to 1") 
+	                                 	Long id) {		
 		
 		try {
 			CommentDTO commentDTO = commentServiceImpl.show(id);
@@ -53,11 +60,16 @@ public class CommentController {
 	}
 	
 	@GetMapping(value = "/comments")
-	public ResponseEntity<?> getAllComments(@RequestParam(required = false, name = "text_part") @Size(min = 3, max = 100, 
-	                                                   message = "text part must be above or equals to 3 and less than or equals to 100 symbols") String textPart,
-									     @PageableDefault(page = DEFAULT_PAGE, size = DEFAULT_PAGE_SIZE) 
-	                                     @SortDefault(sort = "time") 
-	                                     Pageable pageable) {		
+	@Operation(description = "Show all comments or show all comments on part of text value")	
+	public ResponseEntity<?> getAllComments(@Parameter(description = "Searching by part of text in comments", required = false)
+			                                @RequestParam(required = false, name = "text_part") 
+			                                @Size(min = 3, max = 100, 
+	                                                   message = "text part must be above or equals to 3 and less than or equals to 100 symbols") 
+											String textPart,
+			                                @Parameter(description = "Pageable param for page, size and sorting", required = false)
+			                                @PageableDefault(page = DEFAULT_PAGE, size = DEFAULT_PAGE_SIZE) 
+	                                        @SortDefault(sort = "time") 
+	                                        Pageable pageable) {		
 		
 		try {
 			List<CommentDTO> commentDTO = commentServiceImpl.showAllOrByTextPart(textPart, pageable);
@@ -69,7 +81,11 @@ public class CommentController {
 	}
 	
 	@PostMapping(value = "/comments")
-	public ResponseEntity<?> addComment(@Valid @RequestBody CommentDTO commentDTO) {
+	@Operation(description = "Add comment")	
+	public ResponseEntity<?> addComment(@Parameter(description = "Comment dto for adding")
+										@Valid 
+										@RequestBody 
+										CommentDTO commentDTO) {
 		
 		try {
 			CommentDTO savedCommentDTO = commentServiceImpl.add(commentDTO);
@@ -82,7 +98,11 @@ public class CommentController {
 	}
 	
 	@PutMapping("/comments")
-	public ResponseEntity<?> changeComment(@Valid @RequestBody CommentDTO commentDTO) {
+	@Operation(description = "Change comment")	
+	public ResponseEntity<?> changeComment(@Parameter(description = "Comment dto for changing")
+										   @Valid 
+										   @RequestBody 
+										   CommentDTO commentDTO) {
 		
 		try {
 			CommentDTO updatedCommentDTO = commentServiceImpl.change(commentDTO);
@@ -94,7 +114,11 @@ public class CommentController {
 	}
 	
 	@DeleteMapping("/comments")
-	public ResponseEntity<?> removeComment(@Valid @RequestBody CommentDTO commentDTO) {
+	@Operation(description = "Remove comment")	
+	public ResponseEntity<?> removeComment(@Parameter(description = "Comment dto for removing")
+										   @Valid 
+										   @RequestBody 
+										   CommentDTO commentDTO) {
 
 		try {
 			commentServiceImpl.remove(commentDTO);
@@ -104,4 +128,5 @@ public class CommentController {
 		}
 		
 	}
+	
 }
