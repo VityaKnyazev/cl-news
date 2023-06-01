@@ -25,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
 
-import ru.clevertec.ecl.knyazev.dto.CommentDTO;
+import ru.clevertec.ecl.knyazev.dto.NewsDTO;
 import ru.clevertec.ecl.knyazev.integration.testconfig.TestConfig;
 import ru.clevertec.ecl.knyazev.integration.testconfig.testcontainers.PostgreSQLContainersConfig;
 import ru.clevertec.ecl.knyazev.integration.util.TestData;
@@ -38,9 +38,9 @@ import ru.clevertec.ecl.knyazev.integration.util.TestData;
 		@ContextConfiguration(classes = PostgreSQLContainersConfig.class),
 		@ContextConfiguration(classes = TestConfig.class)
 })
-public class CommentControllerTest {
+public class NewsControllerTest {
 	
-	private static final String REQUEST = "/comments";
+	private static final String REQUEST = "/news";
 	
 	@Autowired
 	private MockMvc mockMvc;
@@ -50,29 +50,33 @@ public class CommentControllerTest {
 	
 	@Test
 	@Transactional
-	public void checkGetCommentShouldReturnOk() throws Exception {
+	public void checkGetNewsShouldReturnOk() throws Exception {
 		
-		String inputIdRequest = REQUEST + "/4";
+		String inputIdRequest = REQUEST + "/3";
 		
 		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get(inputIdRequest))
 				  .andReturn();
 
 		int actualStatus = result.getResponse().getStatus();
-		String actualJsonBody = result.getResponse().getContentAsString(Charset.forName("UTF-8"));
-
+		String actualJsonBody = result.getResponse().getContentAsString(Charset.forName("UTF-8"));		
+		NewsDTO actualNewsDTO = objectMapper.readValue(actualJsonBody, NewsDTO.class);
+		
+		Integer defaultCommentsSize = 3;
 
 		assertAll(
 			() -> assertThat(actualStatus).isEqualTo(200),
-			() -> assertThat(actualJsonBody).isEqualTo(TestData.commentDTOOnId())
+			() -> assertThat(actualJsonBody).isEqualTo(TestData.newsDTOOnId()),
+			() -> assertThat(actualNewsDTO.getComments()).isNotEmpty(),
+			() -> assertThat(actualNewsDTO.getComments()).hasSize(defaultCommentsSize)
 		);
 		
 	}
 	
 	@Test
 	@Transactional
-	public void checkGetCommentShouldReturnBadRequest() throws Exception {
+	public void checkGetNewsShouldReturnBadRequest() throws Exception {
 		
-		String inputIdRequest = REQUEST + "/12584";
+		String inputIdRequest = REQUEST + "/125884";
 		
 		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get(inputIdRequest))
 				  .andReturn();
@@ -82,53 +86,61 @@ public class CommentControllerTest {
 		assertThat(actualStatus).isEqualTo(400);
 		
 	}	
-		
+	
 	@Test
 	@Transactional
-	public void checkgetAllCommentsShouldReturnOk() throws Exception {
+	public void checkGetAllNewsShouldReturnOk() throws Exception {
 		
 		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get(REQUEST))
 								  .andReturn();
 		
 		int actualStatus = result.getResponse().getStatus();
 	
-		CollectionType commentsDTOListType = objectMapper.getTypeFactory().constructCollectionType(List.class, CommentDTO.class);
-		List<CommentDTO> actualCommentsDTO = objectMapper.readValue(result.getResponse().getContentAsByteArray(), commentsDTOListType);
+		CollectionType newsDTOsListType = objectMapper.getTypeFactory().constructCollectionType(List.class, NewsDTO.class);
+		List<NewsDTO> actualNewsDTOs = objectMapper.readValue(result.getResponse().getContentAsByteArray(), newsDTOsListType);
+		
+		Integer defaultNewSize = 3;
 		
 		assertAll(
 					() -> assertThat(actualStatus).isEqualTo(200),
-					() -> assertThat(actualCommentsDTO).isNotEmpty(),
-					() -> assertThat(actualCommentsDTO.get(0).getId()).isGreaterThan(0L)
+					() -> assertThat(actualNewsDTOs).isNotEmpty(),
+					() -> assertThat(actualNewsDTOs.get(0).getId()).isGreaterThan(0L),
+					() -> assertThat(actualNewsDTOs).hasSize(defaultNewSize),
+					() -> assertThat(actualNewsDTOs.get(0).getComments()).isNull()
 				);
 		
 	}
 	
 	@Test
 	@Transactional
-	public void checkGetAllCommentsShouldReturnOkOnTextPart() throws Exception {
+	public void checkGetAllNewsShouldReturnOkOnTextPart() throws Exception {
 		
-		String inputCommentTextPart = "все";
-		
+		String inputCommentTextPart = "рот";
+		 
 		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get(REQUEST)
 								  .param("text_part", inputCommentTextPart))
 								  .andReturn();
 		
 		int actualStatus = result.getResponse().getStatus();
 		
-		CollectionType commentDTOListType = objectMapper.getTypeFactory().constructCollectionType(List.class, CommentDTO.class);
-		List<CommentDTO> commentsDTO = objectMapper.readValue(result.getResponse().getContentAsByteArray(), commentDTOListType);
+		CollectionType newsDTOsListType = objectMapper.getTypeFactory().constructCollectionType(List.class, NewsDTO.class);
+		List<NewsDTO> newsDTOs = objectMapper.readValue(result.getResponse().getContentAsByteArray(), newsDTOsListType);
 		
+		Integer defaultNewSize = 3;
 		
 		assertAll(
 					() -> assertThat(actualStatus).isEqualTo(200),
-					() -> assertThat(commentsDTO).isNotEmpty(),
-					() -> assertThat(commentsDTO).allMatch(c -> c.getText().contains(inputCommentTextPart))
+					() -> assertThat(newsDTOs).isNotEmpty(),
+					() -> assertThat(newsDTOs).allMatch(c -> c.getText().contains(inputCommentTextPart)),
+					() -> assertThat(newsDTOs).hasSize(defaultNewSize),
+					() -> assertThat(newsDTOs.get(0).getComments()).isNull()
 				);
+		
 	}
 	
 	@Test
 	@Transactional
-	public void checkGetAllCommentsShouldReturnBadRequest() throws Exception {
+	public void checkGetAllNewsShouldReturnBadRequest() throws Exception {
 		
 		String inputPage = "125";
 		
@@ -137,45 +149,44 @@ public class CommentControllerTest {
 				  .andReturn();
 
 		int actualStatus = result.getResponse().getStatus();	
-		
-		
+				
 		assertThat(actualStatus).isEqualTo(400);
 		
 	}
 
 	@Test
 	@Transactional
-	public void checkAddCommentShouldReturnOk() throws Exception {
+	public void checkAddNewsShouldReturnOk() throws Exception {
 			
-		String savingCommentDTO = TestData.savingCommentDTO();
+		String savingNewsDTO = TestData.savingNewsDTO();
 				
 		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post(REQUEST)
 				.contentType(MediaType.APPLICATION_JSON)
 				.characterEncoding(Charset.forName("UTF-8"))
-				.content(savingCommentDTO))
+				.content(savingNewsDTO))
 				.andReturn();
 
 		int actualStatus = result.getResponse().getStatus();
-		CommentDTO actualCommentDTO = objectMapper.readValue(result.getResponse().getContentAsByteArray(), CommentDTO.class);
+		NewsDTO actualNewsDTO = objectMapper.readValue(result.getResponse().getContentAsByteArray(), NewsDTO.class);
 		
 		assertAll(
 					() -> assertThat(actualStatus).isEqualTo(201),
-					() -> assertThat(actualCommentDTO).isNotNull(),
-					() -> assertThat(actualCommentDTO.getNewsDTO().getId()).isEqualTo(1)
+					() -> assertThat(actualNewsDTO).isNotNull(),
+					() -> assertThat(actualNewsDTO.getId()).isGreaterThan(0L)
 				);
 		
 	}
 	
 	@Test
 	@Transactional
-	public void checkAddCommentShouldReturnBadRequest() throws Exception {
+	public void checkAddNewsShouldReturnBadRequest() throws Exception {
 			
-		String savingInvalidCommentDTO = TestData.savingInvalidCommentDTO();
+		String savingInvalidNewsDTO = TestData.savingInvalidNewsDTO();
 				
 		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post(REQUEST)
 				.contentType(MediaType.APPLICATION_JSON)
 				.characterEncoding(Charset.forName("UTF-8"))
-				.content(savingInvalidCommentDTO))
+				.content(savingInvalidNewsDTO))
 				.andReturn();
 
 		int actualStatus = result.getResponse().getStatus();
@@ -186,36 +197,37 @@ public class CommentControllerTest {
 	
 	@Test
 	@Transactional
-	public void checkChangeCommentShouldReturnOk() throws Exception {
-		String changingCommentDTO = TestData.changingCommentDTO();
+	public void checkChangeNewsShouldReturnOk() throws Exception {
+		String changingNewsDTO = TestData.changingNewsDTO();
 		
 		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.put(REQUEST)
 				.contentType(MediaType.APPLICATION_JSON)
 				.characterEncoding(Charset.forName("UTF-8"))
-				.content(changingCommentDTO))
+				.content(changingNewsDTO))
 				.andReturn();
 
 		int actualStatus = result.getResponse().getStatus();
-		CommentDTO actualCommentDTO = objectMapper.readValue(result.getResponse().getContentAsByteArray(), CommentDTO.class);
+		NewsDTO actualNewsDTO = objectMapper.readValue(result.getResponse().getContentAsByteArray(), NewsDTO.class);
 
 		assertAll(
 				() -> assertThat(actualStatus).isEqualTo(200),
-				() -> assertThat(actualCommentDTO).isNotNull(),
-				() -> assertThat(actualCommentDTO.getUserName()).isEqualTo("Karina")
+				() -> assertThat(actualNewsDTO).isNotNull(),
+				() -> assertThat(actualNewsDTO.getTitle()).isEqualTo("Пожалуйста, измени название этой новости"),
+				() -> assertThat(actualNewsDTO.getText()).isEqualTo("Пожалуйста, измени текст этой новости")
 			);
 		
 	}
 	
 	@Test
 	@Transactional
-	public void checkChangeCommentShouldReturnBadRequest() throws Exception {
+	public void checkChangeNewsShouldReturnBadRequest() throws Exception {
 			
-		String changingInvalidCommentDTO = TestData.changingInvalidCommentDTO();
+		String changingInvalidNewsDTO = TestData.changingInvalidNewsDTO();
 				
 		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.put(REQUEST)
 				.contentType(MediaType.APPLICATION_JSON)
 				.characterEncoding(Charset.forName("UTF-8"))
-				.content(changingInvalidCommentDTO))
+				.content(changingInvalidNewsDTO))
 				.andReturn();
 
 		int actualStatus = result.getResponse().getStatus();
@@ -226,14 +238,14 @@ public class CommentControllerTest {
 	
 	@Test
 	@Transactional
-	public void checkRemoveCommentShouldReturnNoContent() throws Exception {
+	public void checkRemoveNewsShouldReturnNoContent() throws Exception {
 		
-		String removingComment = TestData.removingEntity();
+		String removingNews = TestData.removingEntity();
 		
 		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.delete(REQUEST)
 				.contentType(MediaType.APPLICATION_JSON)
 				.characterEncoding(Charset.forName("UTF-8"))
-				.content(removingComment))
+				.content(removingNews))
 				.andReturn();
 
 		int actualStatus = result.getResponse().getStatus();
@@ -244,14 +256,14 @@ public class CommentControllerTest {
 	
 	@Test
 	@Transactional
-	public void checkRemoveCommentShouldReturnBadRequest() throws Exception {
+	public void checkRemoveNewsShouldReturnBadRequest() throws Exception {
 		
-		String removingInvalidComment = TestData.removingInvalidEntity();
+		String removingInvalidNews = TestData.removingInvalidEntity();
 		
 		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.delete(REQUEST)
 				.contentType(MediaType.APPLICATION_JSON)
 				.characterEncoding(Charset.forName("UTF-8"))
-				.content(removingInvalidComment))
+				.content(removingInvalidNews))
 				.andReturn();
 
 		int actualStatus = result.getResponse().getStatus();

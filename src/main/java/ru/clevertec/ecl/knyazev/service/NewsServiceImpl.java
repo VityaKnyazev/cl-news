@@ -81,7 +81,7 @@ public class NewsServiceImpl implements NewsService {
 			log.error("Error. Can't find news on given page={} and pagesize={}", pageable.getPageNumber(), pageable.getPageSize());
 			throw new ServiceException(FINDING_ERROR);
 		} else {
-			return newsMapperImpl.toNewsDTOs(news);
+			return newsMapperImpl.toNewsDTOsWithoutComments(news);
 		}
 		
 	}
@@ -101,7 +101,7 @@ public class NewsServiceImpl implements NewsService {
 				log.error("Error. Can't find news on given text part={}, page={} and pagesize={}", textPart, pageable.getPageNumber(), pageable.getPageSize());
 				throw new ServiceException(FINDING_ERROR);
 			} else {
-				newsDTO = newsMapperImpl.toNewsDTOs(news);
+				newsDTO = newsMapperImpl.toNewsDTOsWithoutComments(news);
 			}
 			
 		} else {

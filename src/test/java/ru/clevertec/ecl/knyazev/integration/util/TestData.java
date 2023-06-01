@@ -10,20 +10,40 @@ public class TestData {
 		return getDataFromFile("data/files/getCommentDTOOnId.txt");
 	}
 	
+	public static String newsDTOOnId() {
+		return getDataFromFile("data/files/getNewsDTOOnId.txt");
+	}
+	
 	public static String savingCommentDTO() {
 		return getDataFromFile("data/files/savingCommentDTO.txt");
+	}
+	
+	public static String savingNewsDTO() {
+		return getDataFromFile("data/files/savingNewsDTO.txt");
 	}
 	
 	public static String savingInvalidCommentDTO() {
 		return getDataFromFile("data/files/savingInvalidCommentDTO.txt");
 	}
 	
+	public static String savingInvalidNewsDTO() {
+		return getDataFromFile("data/files/savingInvalidNewsDTO.txt");
+	}
+	
 	public static String changingCommentDTO() {
 		return getDataFromFile("data/files/changingCommentDTO.txt");
 	}
 	
+	public static String changingNewsDTO() {
+		return getDataFromFile("data/files/changingNewsDTO.txt");
+	}
+	
 	public static String changingInvalidCommentDTO() {
 		return getDataFromFile("data/files/changingInvalidCommentDTO.txt");
+	}
+	
+	public static String changingInvalidNewsDTO() {
+		return getDataFromFile("data/files/changingInvalidNewsDTO.txt");
 	}
 	
 	
