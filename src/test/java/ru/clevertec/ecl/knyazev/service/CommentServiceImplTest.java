@@ -33,10 +33,10 @@ import org.testcontainers.shaded.com.google.common.collect.Lists;
 
 import ru.clevertec.ecl.knyazev.dto.CommentDTO;
 import ru.clevertec.ecl.knyazev.dto.NewsDTO;
-import ru.clevertec.ecl.knyazev.dto.mapper.CommentMapper;
-import ru.clevertec.ecl.knyazev.dto.mapper.CommentMapperImpl;
 import ru.clevertec.ecl.knyazev.entity.Comment;
 import ru.clevertec.ecl.knyazev.entity.News;
+import ru.clevertec.ecl.knyazev.mapper.CommentMapper;
+import ru.clevertec.ecl.knyazev.mapper.CommentMapperImpl;
 import ru.clevertec.ecl.knyazev.repository.CommentRepository;
 import ru.clevertec.ecl.knyazev.service.exception.ServiceException;
 

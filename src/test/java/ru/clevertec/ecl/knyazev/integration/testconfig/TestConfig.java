@@ -20,7 +20,7 @@ import ru.clevertec.ecl.knyazev.config.WebConfig;
 @EnableWebMvc
 @Import(value = WebConfig.class)
 @EnableJpaRepositories("ru.clevertec.ecl.knyazev.repository")
-@ComponentScan(basePackages = { "ru.clevertec.ecl.knyazev.service", "ru.clevertec.ecl.knyazev.dto.mapper",
+@ComponentScan(basePackages = { "ru.clevertec.ecl.knyazev.service", "ru.clevertec.ecl.knyazev.mapper",
 		"ru.clevertec.ecl.knyazev.controller", "ru.clevertec.ecl.knyazev.config.connection" })
 public class TestConfig implements WebMvcConfigurer {
 	

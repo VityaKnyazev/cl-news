@@ -1,4 +1,4 @@
-package ru.clevertec.ecl.knyazev.dto.mapper;
+package ru.clevertec.ecl.knyazev.mapper;
 
 import java.util.List;
 

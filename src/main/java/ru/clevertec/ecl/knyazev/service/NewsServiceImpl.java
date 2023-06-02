@@ -15,10 +15,10 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ru.clevertec.ecl.knyazev.dto.NewsDTO;
-import ru.clevertec.ecl.knyazev.dto.mapper.CommentNewsMapper;
-import ru.clevertec.ecl.knyazev.dto.mapper.NewsMapper;
 import ru.clevertec.ecl.knyazev.entity.Comment;
 import ru.clevertec.ecl.knyazev.entity.News;
+import ru.clevertec.ecl.knyazev.mapper.CommentNewsMapper;
+import ru.clevertec.ecl.knyazev.mapper.NewsMapper;
 import ru.clevertec.ecl.knyazev.repository.NewsRepository;
 import ru.clevertec.ecl.knyazev.service.exception.ServiceException;
 

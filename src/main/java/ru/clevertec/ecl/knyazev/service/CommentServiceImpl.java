@@ -15,9 +15,9 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ru.clevertec.ecl.knyazev.dto.CommentDTO;
-import ru.clevertec.ecl.knyazev.dto.mapper.CommentMapper;
 import ru.clevertec.ecl.knyazev.entity.Comment;
 import ru.clevertec.ecl.knyazev.entity.News;
+import ru.clevertec.ecl.knyazev.mapper.CommentMapper;
 import ru.clevertec.ecl.knyazev.repository.CommentRepository;
 import ru.clevertec.ecl.knyazev.service.exception.ServiceException;
 

@@ -32,12 +32,12 @@ import org.springframework.data.domain.Sort;
 import org.testcontainers.shaded.com.google.common.collect.Lists;
 
 import ru.clevertec.ecl.knyazev.dto.NewsDTO;
-import ru.clevertec.ecl.knyazev.dto.mapper.CommentNewsMapper;
-import ru.clevertec.ecl.knyazev.dto.mapper.CommentNewsMapperImpl;
-import ru.clevertec.ecl.knyazev.dto.mapper.NewsMapper;
-import ru.clevertec.ecl.knyazev.dto.mapper.NewsMapperImpl;
 import ru.clevertec.ecl.knyazev.entity.Comment;
 import ru.clevertec.ecl.knyazev.entity.News;
+import ru.clevertec.ecl.knyazev.mapper.CommentNewsMapper;
+import ru.clevertec.ecl.knyazev.mapper.CommentNewsMapperImpl;
+import ru.clevertec.ecl.knyazev.mapper.NewsMapper;
+import ru.clevertec.ecl.knyazev.mapper.NewsMapperImpl;
 import ru.clevertec.ecl.knyazev.repository.NewsRepository;
 import ru.clevertec.ecl.knyazev.service.exception.ServiceException;
 

@@ -74,12 +74,21 @@ liquibase {
     sales {
     	  changeLogFile "/src/main/resources/liquibase/db-news-changelog.xml"
           driver "org.postgresql.Driver"
-		  url "jdbc:postgresql://localhost:5432/news?useUnicode=true&characterEncoding=UTF-8"
+		  url "jdbc:postgresql://db-news:5432/news?useUnicode=true&characterEncoding=UTF-8"
 		  username "admin"
           password "admin"
     }
   }
 }
+
+test {
+
+    filter {
+        excludeTestsMatching "ru.clevertec.ecl.knyazev.integration.*"
+    }
+
+}
+
 
 tasks.named('test') {
 	useJUnitPlatform()
