@@ -12,7 +12,7 @@ package ru.clevertec.ecl.knyazev.cache;
  * @param <V> value that should be cashed
  */
 public interface Cache<K, V> {
-	static final Integer DEFAULT_CACHE_SIZE = 10;
+	static final Integer DEFAULT_CACHE_SIZE = 50;
 	
 	/**
 	 * 
@@ -39,4 +39,21 @@ public interface Cache<K, V> {
 	 * @param key for identifying and fetching cached value
 	 */
 	void remove(K key);
+	
+	/**
+	 * 
+	 * Get cache size - quantity of elements in cache
+	 * 
+	 * @return cache size.
+	 */
+	Integer size();
+	
+	/**
+	 * 
+	 * Check if cache contains key-value on given key
+	 * 
+	 * @param key for checking if cache contains value on given key
+	 * @return true if cache contains key-value on given key - otherwise false.
+	 */
+	Boolean contains(K key);
 }

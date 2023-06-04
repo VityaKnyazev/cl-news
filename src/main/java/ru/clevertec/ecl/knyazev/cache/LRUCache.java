@@ -9,7 +9,7 @@ import java.util.Map;
 /**
  * 
  * Current class is a realization of LRU caching mechanism. Value is in cache
- * while using. When it become old than V value and K key will be deleted from
+ * while using. When it becomes "old" than V value and K key will be deleted from
  * cache.
  * 
  * For correct algorithm work in classes of types K,V that are used in LRUCache
@@ -120,6 +120,16 @@ public class LRUCache<K, V> implements Cache<K, V> {
 			}
 		}
 		
+	}
+	
+	@Override
+	public Integer size() {
+		return lruCache.size();
+	}
+	
+	@Override
+	public Boolean contains(K key) {
+		return lruCache.containsKey(key);
 	}
 
 	/**

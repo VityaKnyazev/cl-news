@@ -12,7 +12,7 @@ spring:
 connection:
    db:
       driverClassName: org.postgresql.Driver
-      jdbcUrl: jdbc:postgresql://db-news:5432/news?charSet=utf-8
+      jdbcUrl: jdbc:postgresql://localhost:5432/news?charSet=utf-8
       username: admin
       password: admin
       maxPoolSize: 3

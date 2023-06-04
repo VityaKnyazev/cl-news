@@ -8,7 +8,7 @@ import java.util.Map;
  * Current class is a realization of LFU caching mechanism. Value is in cache
  * while quantity of using of current value is bigger than quantity of using of
  * others values. When frequency of using becomes the lowest, value will be
- * deleted from cache. will be deleted from cache.
+ * deleted from cache.
  * 
  * For correct algorithm work in classes of types K,V that are used in LFUCache
  * must be overriding equals and hashcode methods.
@@ -104,6 +104,16 @@ public class LFUCache<K, V> implements Cache<K, V> {
 			V removedValue = lfuCache.remove(key);
 			cacheElCounter.remove(removedValue);
 		}
+	}
+	
+	@Override
+	public Integer size() {
+		return lfuCache.size();
+	}
+	
+	@Override
+	public Boolean contains(K key) {
+		return lfuCache.containsKey(key);
 	}
 	
 	/**

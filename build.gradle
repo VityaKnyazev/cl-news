@@ -39,7 +39,7 @@ dependencies {
 	implementation "org.springframework.boot:spring-boot-starter-data-jpa"
 	implementation "org.springframework.boot:spring-boot-starter-data-rest"
 	implementation "org.springframework.boot:spring-boot-starter-web"
-
+	
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	
 	implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:$springdocVersion"
@@ -74,13 +74,15 @@ liquibase {
     sales {
     	  changeLogFile "/src/main/resources/liquibase/db-news-changelog.xml"
           driver "org.postgresql.Driver"
-		  url "jdbc:postgresql://db-news:5432/news?useUnicode=true&characterEncoding=UTF-8"
+		  url "jdbc:postgresql://localhost:5432/news?useUnicode=true&characterEncoding=UTF-8"
 		  username "admin"
           password "admin"
     }
   }
 }
 
+//Only when starting application in Docker
+/*
 test {
 
     filter {
@@ -88,7 +90,7 @@ test {
     }
 
 }
-
+*/
 
 tasks.named('test') {
 	useJUnitPlatform()
