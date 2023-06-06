@@ -6,11 +6,16 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
 
+@ConditionalOnProperty(
+		  value="aspect.controllerLogging", 
+		  havingValue = "enable", 
+		  matchIfMissing = false)
 @Aspect
 @Component
 @Slf4j
@@ -40,7 +45,7 @@ public class ControllerLoggerAspect {
 			return responseEntity;
 			
 		} catch (Throwable t) {
-			log.error("Response: {} {} {}", t.getMessage(), System.lineSeparator(), t);			
+			log.error("Response: {} {}", (t != null ? t.getMessage() : "") + System.lineSeparator(), t);			
 			throw t;
 		}	
 

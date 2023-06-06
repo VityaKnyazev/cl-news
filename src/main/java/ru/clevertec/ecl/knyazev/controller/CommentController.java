@@ -22,6 +22,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -46,12 +47,13 @@ public class CommentController {
 	@GetMapping(value = "/comments/{id}")
 	@Operation(description = "Show comment by id")
 	public ResponseEntity<?> getComment(@Parameter(description = "Comment id")
-										@PathVariable 
+										@PathVariable
+										@NotNull(message = "Comment id must must be no null")
 			                         	@Positive(message = "Comment id must be greater than or equals to 1") 
 	                                 	Long id) {		
 		
 		try {
-			CommentDTO commentDTO = commentServiceImpl.show(id);
+			CommentDTO commentDTO = commentServiceImpl.showById(id);
 			return ResponseEntity.ok().body(commentDTO);
 		} catch (ServiceException e) {
 			return ResponseEntity.badRequest().body(e.getMessage());

@@ -10,7 +10,14 @@ services:
         - POSTGRES_USER=admin
         - POSTGRES_PASSWORD=admin
         - POSTGRES_DB=news
+
+  redis:
+     image: redis:alpine
+     restart: always
+     ports:
+        - 6379:6379
+
 #  app-news:
 #     build: ./
 #     ports:
-#     - 8080:8080
+#        - 8080:8080

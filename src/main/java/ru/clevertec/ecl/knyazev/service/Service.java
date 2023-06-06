@@ -17,7 +17,7 @@ public interface Service<T> {
 	 * @throws ServiceException when T not found or invalid id
 	 * 
 	 */
-	T show(Long id) throws ServiceException;
+	T showById(Long id) throws ServiceException;
 	
 	/**
 	 * 

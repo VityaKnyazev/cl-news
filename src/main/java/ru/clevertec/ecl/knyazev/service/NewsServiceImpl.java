@@ -3,7 +3,6 @@ package ru.clevertec.ecl.knyazev.service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -22,6 +21,7 @@ import ru.clevertec.ecl.knyazev.mapper.NewsMapper;
 import ru.clevertec.ecl.knyazev.repository.NewsRepository;
 import ru.clevertec.ecl.knyazev.service.exception.ServiceException;
 
+//TODO rename methods
 @Service
 @NoArgsConstructor
 @AllArgsConstructor(onConstructor_ = { @Autowired } )
@@ -42,27 +42,20 @@ public class NewsServiceImpl implements NewsService {
 
 	@Override
 	@Transactional(readOnly = true)
-	public NewsDTO show(Long id) throws ServiceException {
+	public NewsDTO showById(Long id) throws ServiceException {
 		
-		if (id == null) {
-			log.error("Error searching news on null id");
-			throw new ServiceException(FINDING_ERROR);
-		}
-		
-		Optional<News> newsWrap = newsRepository.findById(id);
-		
-		if (newsWrap.isEmpty()) {
+		News newsDB = newsRepository.findById(id).orElseThrow(() -> {
 			log.error("Error news with id ={} was not found", id);
-			throw new ServiceException(FINDING_ERROR);
-		} else {
-			return newsMapperImpl.toNewsDTO(newsWrap.get());
-		}
+			return new ServiceException(FINDING_ERROR);
+		});
+		
+		return newsMapperImpl.toNewsDTO(newsDB);
 		
 	}
 	
 	@Override
 	@Transactional(readOnly = true)
-	public NewsDTO show(Long id, Pageable commentsPageable) throws ServiceException {
+	public NewsDTO showById(Long id, Pageable commentsPageable) throws ServiceException {
 		
 		List<Comment> comments = commentServiceImpl.showAllByNewsId(id, commentsPageable);
 		

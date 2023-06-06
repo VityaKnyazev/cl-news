@@ -1,6 +1,11 @@
 spring:
    profiles:
       active: dev
+      
+springdoc:
+   show-actuator: false
+   swagger-ui:
+      enabled: true
                   
 ---
 
@@ -8,6 +13,12 @@ spring:
    config:
       activate:
          on-profile: dev
+
+aspect:
+   controllerLogging: disable
+   caching:
+      enable: false
+      type: redis
 
 connection:
    db:
@@ -31,6 +42,11 @@ spring:
    config:
       activate:
          on-profile: test
+   cache:
+      type: redis
+   redis:
+      host: localhost
+      port: 6379
 
 connection:
    db:
@@ -52,9 +68,4 @@ testcontainers:
    usernameEnvVar: db_user
    passwordEnvVar: db_password
    liquibaseChangelogFile: /liquibase/db-test-news-changelog.xml
-   
-springdoc:
-   show-actuator: false
-   swagger-ui:
-      enabled: true
          

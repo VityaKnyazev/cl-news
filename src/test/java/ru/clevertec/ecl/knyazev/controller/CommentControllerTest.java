@@ -64,7 +64,7 @@ public class CommentControllerTest {
 				                         .userName("Alexandr")
 				                         .build();
 		
-		Mockito.when(commentServiceImplMock.show(Mockito.anyLong()))
+		Mockito.when(commentServiceImplMock.showById(Mockito.anyLong()))
 		       .thenReturn(expectedCommentDTO);
 		
 		String commentIdRequest= REQUEST + "/1";
@@ -85,7 +85,7 @@ public class CommentControllerTest {
 	@Test
 	public void checkGetCommentShouldReturnBadRequest() throws Exception {
 		
-		Mockito.when(commentServiceImplMock.show(Mockito.anyLong()))
+		Mockito.when(commentServiceImplMock.showById(Mockito.anyLong()))
 	           .thenThrow(ServiceException.class);
 		
 		String commentIdRequest= REQUEST + "/1";

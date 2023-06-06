@@ -22,6 +22,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -46,6 +47,7 @@ public class NewsController {
 	@Operation(description = "Show news by id")
 	public ResponseEntity<?> getNews(@Parameter(description = "News id")
 									 @PathVariable 
+									 @NotNull(message = "News id must be not null")
 			                         @Positive(message = "News id must be greater than or equals to 1")
 	                                 Long id,
 	                                 @Parameter(description = "Pageable for page, size and sorting comments in news", 
@@ -55,7 +57,7 @@ public class NewsController {
 									 Pageable pageable) {		
 		
 		try {
-			NewsDTO newsDTO = newsServiceImpl.show(id, pageable);
+			NewsDTO newsDTO = newsServiceImpl.showById(id, pageable);
 			return ResponseEntity.ok().body(newsDTO);
 		} catch (ServiceException e) {
 			return ResponseEntity.badRequest().body(e.getMessage());

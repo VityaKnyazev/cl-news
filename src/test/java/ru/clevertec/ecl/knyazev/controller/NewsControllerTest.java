@@ -65,7 +65,7 @@ public class NewsControllerTest {
 				                         .text("Нанем с важных новостей")
 				                         .build();
 		
-		Mockito.when(newsServiceImplMock.show(Mockito.anyLong(), Mockito.any(Pageable.class)))
+		Mockito.when(newsServiceImplMock.showById(Mockito.anyLong(), Mockito.any(Pageable.class)))
 		       .thenReturn(expectedNewsDTO);
 		
 		String newsIdRequest= REQUEST + "/1";
@@ -86,7 +86,7 @@ public class NewsControllerTest {
 	@Test
 	public void checkGetNewsShouldReturnBadRequest() throws Exception {
 		
-		Mockito.when(newsServiceImplMock.show(Mockito.anyLong(), Mockito.any(Pageable.class)))
+		Mockito.when(newsServiceImplMock.showById(Mockito.anyLong(), Mockito.any(Pageable.class)))
 	           .thenThrow(ServiceException.class);
 		
 		String newsIdRequest= REQUEST + "/1";

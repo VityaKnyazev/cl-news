@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -60,7 +61,7 @@ public class NewsServiceImplTest {
 	private NewsServiceImpl newsServiceImpl;
 	
 	@Test
-	public void checkShowShouldReturnNewsDTO() throws ServiceException {
+	public void checkShowByIdShouldReturnNewsDTO() throws ServiceException {
 		
 		Optional<News> expectedNews = Optional.of(
 						News.builder()
@@ -88,7 +89,7 @@ public class NewsServiceImplTest {
 		
 		Long inputNewsId = 2L;
 		
-		NewsDTO actualNewsDTO = newsServiceImpl.show(inputNewsId);
+		NewsDTO actualNewsDTO = newsServiceImpl.showById(inputNewsId);
 		
 		assertAll(
 					() -> assertThat(actualNewsDTO).isNotNull(),
@@ -96,16 +97,17 @@ public class NewsServiceImplTest {
 				);
 	}
 	
+	@Disabled(value = "Null validation added to controller")
 	@Test
-	public void checkShowShouldThrowServiceExceptionOnNullId() {
+	public void checkShowByIdShouldThrowServiceExceptionOnNullId() {
 		Long invalidNewsId = null;
 		
 		assertThatExceptionOfType(ServiceException.class).isThrownBy(() -> 
-		                                                  newsServiceImpl.show(invalidNewsId));
+		                                                  newsServiceImpl.showById(invalidNewsId));
 	}
 	
 	@Test
-	public void checkShowShouldThrowServiceExceptionWhenNewsNotFound() {
+	public void checkShowByIdShouldThrowServiceExceptionWhenNewsNotFound() {
 		Long inputNewsId = 26885L;
 		
 		Optional<News> expectedNews = Optional.empty();
@@ -113,11 +115,11 @@ public class NewsServiceImplTest {
 		Mockito.when(newsRepositoryMock.findById(Mockito.anyLong()))
 	       	   .thenReturn(expectedNews);
 		
-		assertThatExceptionOfType(ServiceException.class).isThrownBy(() -> newsServiceImpl.show(inputNewsId));
+		assertThatExceptionOfType(ServiceException.class).isThrownBy(() -> newsServiceImpl.showById(inputNewsId));
 	}
 	
 	@Test
-	public void checkShowShouldReturnNewsDTOWithCommentsPagination() throws ServiceException {
+	public void checkShowByIdShouldReturnNewsDTOWithCommentsPagination() throws ServiceException {
 		List<Comment> expectedComments = List.of(
 					Comment.builder()
 						   .id(2L)
@@ -152,7 +154,7 @@ public class NewsServiceImplTest {
 		
 		Pageable commentsPageable = PageRequest.of(inputPage, inputPageSize, Sort.by(inputCommentsSortOrder));
 		
-		NewsDTO actualNewsDTO = newsServiceImpl.show(inputNewsId, commentsPageable);
+		NewsDTO actualNewsDTO = newsServiceImpl.showById(inputNewsId, commentsPageable);
 		
 		assertThat(actualNewsDTO.getComments()).hasSize(2);
 	}

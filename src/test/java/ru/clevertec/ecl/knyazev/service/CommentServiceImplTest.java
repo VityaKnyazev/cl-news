@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -53,7 +54,7 @@ public class CommentServiceImplTest {
 	private CommentServiceImpl commentServiceImpl;
 	
 	@Test
-	public void checkShowShouldReturnCommentDTO() throws ServiceException {
+	public void checkShowByIdShouldReturnCommentDTO() throws ServiceException {
 		
 		Long expectedCommentId = 2L;
 		
@@ -75,7 +76,7 @@ public class CommentServiceImplTest {
 		
 		Long inputCommentId = 2L;
 		
-		CommentDTO actualCommentDTO = commentServiceImpl.show(inputCommentId);
+		CommentDTO actualCommentDTO = commentServiceImpl.showById(inputCommentId);
 		
 		assertAll(
 					() -> assertThat(actualCommentDTO).isNotNull(),
@@ -83,16 +84,17 @@ public class CommentServiceImplTest {
 				);
 	}
 	
+	@Disabled(value = "Null validation added to controller")
 	@Test
-	public void checkShowShouldThrowServiceExceptionOnNullId() {
+	public void checkShowByIdShouldThrowServiceExceptionOnNullId() {
 		Long invalidCommentId = null;
 		
 		assertThatExceptionOfType(ServiceException.class).isThrownBy(() -> 
-									   commentServiceImpl.show(invalidCommentId));
+									   commentServiceImpl.showById(invalidCommentId));
 	}
 	
 	@Test
-	public void checkShowShouldThrowServiceExceptionWhenCommentNotFound() {
+	public void checkShowByIdShouldThrowServiceExceptionWhenCommentNotFound() {
 		Long inputCommentId = 35489L;
 		
 		Optional<Comment> expectedComment = Optional.empty();
@@ -101,7 +103,7 @@ public class CommentServiceImplTest {
 	       	   .thenReturn(expectedComment);
 		
 		assertThatExceptionOfType(ServiceException.class).isThrownBy(() -> 
-									   commentServiceImpl.show(inputCommentId));
+									   commentServiceImpl.showById(inputCommentId));
 	}
 	
 	@Test

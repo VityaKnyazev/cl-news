@@ -17,6 +17,6 @@ public interface NewsService extends Service<NewsDTO> {
 	 * @throws ServiceException if nothing found
 	 * 
 	 */
-	NewsDTO show(Long id, Pageable commentsPageable) throws ServiceException;
+	NewsDTO showById(Long id, Pageable commentsPageable) throws ServiceException;
 	
 }

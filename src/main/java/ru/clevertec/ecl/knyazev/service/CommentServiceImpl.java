@@ -3,7 +3,6 @@ package ru.clevertec.ecl.knyazev.service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -38,21 +37,14 @@ public class CommentServiceImpl implements CommentService {
 
 	@Override
 	@Transactional(readOnly = true)
-	public CommentDTO show(Long id) throws ServiceException {
-		
-		if (id == null) {
-			log.error("Error searching comment on null id");
-			throw new ServiceException(FINDING_ERROR);
-		}
-		
-		Optional<Comment> commentWrap = commentRepository.findById(id);
-		
-		if (commentWrap.isEmpty()) {
+	public CommentDTO showById(Long id) throws ServiceException {
+				
+		Comment commentDB = commentRepository.findById(id).orElseThrow(() -> {
 			log.error("Error comment with id ={} was not found", id);
-			throw new ServiceException(FINDING_ERROR);
-		} else {
-			return commentMapperImpl.toCommentDTO(commentWrap.get());
-		}
+			return new ServiceException(FINDING_ERROR);
+		});
+		
+		return commentMapperImpl.toCommentDTO(commentDB);	
 		
 	}
 

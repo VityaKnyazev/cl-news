@@ -14,5 +14,5 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
 
 	@Query(value = "SELECT c FROM Comment c WHERE c.text LIKE ?1")
 	List<Comment> findAllByPartCommentText(String textPart, Pageable pageable);
-	
+
 }

@@ -1,5 +1,6 @@
 package ru.clevertec.ecl.knyazev.entity;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -26,8 +27,10 @@ import lombok.Setter;
 @EqualsAndHashCode
 @Entity
 @Table(name = "news")
-public class News {
-	
+public class News implements Serializable {
+
+	private static final long serialVersionUID = -7619851169140124512L;
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
