@@ -21,7 +21,6 @@ import ru.clevertec.ecl.knyazev.mapper.NewsMapper;
 import ru.clevertec.ecl.knyazev.repository.NewsRepository;
 import ru.clevertec.ecl.knyazev.service.exception.ServiceException;
 
-//TODO rename methods
 @Service
 @NoArgsConstructor
 @AllArgsConstructor(onConstructor_ = { @Autowired } )

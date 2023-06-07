@@ -16,9 +16,9 @@ spring:
 
 aspect:
    controllerLogging: disable
-   caching:
-      enable: false
-      type: redis
+   cache:
+      enable: true
+      type: redis 
 
 connection:
    db:
@@ -34,6 +34,9 @@ connection:
       dialect: org.hibernate.dialect.PostgreSQLDialect
       showSql: true
       transactionIsolationValue: 2
+   redis:
+      host: localhost
+      port:
       
 
 ---      
@@ -42,11 +45,6 @@ spring:
    config:
       activate:
          on-profile: test
-   cache:
-      type: redis
-   redis:
-      host: localhost
-      port: 6379
 
 connection:
    db:
