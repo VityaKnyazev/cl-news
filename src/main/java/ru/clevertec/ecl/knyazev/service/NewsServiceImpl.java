@@ -149,7 +149,7 @@ public class NewsServiceImpl implements NewsService {
 				dbNews.setText(changingNewsText);
 			}
 			
-			return newsMapperImpl.toNewsDTO(newsRepository.save(dbNews));
+			return newsMapperImpl.toNewsDTOWithoutComments(newsRepository.save(dbNews));
 			
 		} catch (DataAccessException e) {
 			log.error("Error when changing news: {}", e.getMessage(), e);

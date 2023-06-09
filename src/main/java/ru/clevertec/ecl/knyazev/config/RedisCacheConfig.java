@@ -9,8 +9,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 
 import ru.clevertec.ecl.knyazev.aspect.cache.CommentRepositoryCacheRedisAspect;
 import ru.clevertec.ecl.knyazev.aspect.cache.NewsRepositoryCacheRedisAspect;
-import ru.clevertec.ecl.knyazev.entity.Comment;
-import ru.clevertec.ecl.knyazev.entity.News;
 
 @ConditionalOnExpression(
 		  "${aspect.cache.enable:true} and '${aspect.cache.type}'.equals('redis')"
@@ -22,30 +20,21 @@ public class RedisCacheConfig {
 	private LettuceConnectionFactory lettuceConnectionFactory;
 	
 	@Bean
-	RedisTemplate<Long, Comment> commentRedisTemplate() {
-	    RedisTemplate<Long, Comment> commentRedisTemplate = new RedisTemplate<Long, Comment>();
-	    commentRedisTemplate.setConnectionFactory(lettuceConnectionFactory);
-	    commentRedisTemplate.afterPropertiesSet();
-	    return commentRedisTemplate;
+	RedisTemplate<String, Object> redisTemplate() {
+	    RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
+	    redisTemplate.setConnectionFactory(lettuceConnectionFactory);
+	    redisTemplate.afterPropertiesSet();
+	    return redisTemplate;
 	}
-	
-	@Bean
-	RedisTemplate<Long, News> newsRedisTemplate() {
-	    RedisTemplate<Long, News> newsRedisTemplate = new RedisTemplate<Long, News>();
-	    newsRedisTemplate.setConnectionFactory(lettuceConnectionFactory);
-	    newsRedisTemplate.afterPropertiesSet();
-	    return newsRedisTemplate;
-	}
-
 
 	@Bean
 	CommentRepositoryCacheRedisAspect commentRepositoryCacheRedisAspect() {
-		return new CommentRepositoryCacheRedisAspect(commentRedisTemplate());
+		return new CommentRepositoryCacheRedisAspect(redisTemplate());
 	}
 	
 	@Bean
 	NewsRepositoryCacheRedisAspect newsRepositoryCacheRedisAspect() {
-		return new NewsRepositoryCacheRedisAspect(newsRedisTemplate());
+		return new NewsRepositoryCacheRedisAspect(redisTemplate());
 	}
 	
 }
