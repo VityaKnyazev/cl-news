@@ -2,6 +2,7 @@ package ru.clevertec.ecl.knyazev.aspect.cache;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -12,21 +13,21 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import jakarta.persistence.PersistenceContext;
-import ru.clevertec.ecl.knyazev.entity.Comment;
 import ru.clevertec.ecl.knyazev.entity.News;
 
 @Aspect
-public class NewsRepositoryCacheRedisAspect extends Cacheable {
+public class NewsRepositoryCacheRedisAspect extends RedisCache {
 	
 	@PersistenceContext
 	private Session session;
-	
-	private RedisTemplate<String, Object> redisTemplate;
-	
+		
 	public NewsRepositoryCacheRedisAspect(RedisTemplate<String, Object> redisTemplate) {
-		this.redisTemplate = redisTemplate;
+		super(redisTemplate);
 	}
 
+	@Pointcut(value = "execution(public * ru.clevertec.ecl.knyazev.repository.NewsRepository.findById(..))")
+	private void findByIdMethod() {}
+	
 	@Pointcut(value = "execution(public * ru.clevertec.ecl.knyazev.repository.NewsRepository.findAll(*))")
 	private void findAllMethod() {}
 	
@@ -39,6 +40,29 @@ public class NewsRepositoryCacheRedisAspect extends Cacheable {
 	@Pointcut(value = "execution(public void ru.clevertec.ecl.knyazev.repository.NewsRepository.delete(*))")
 	private void deleteMethod() {}
 
+	@Around(value = "findByIdMethod()")
+	Optional<News> cacheAroundFindByIdMethod(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
+
+		Optional<News> newsWrap = Optional.empty();
+
+		Long newsId = (long) proceedingJoinPoint.getArgs()[0];
+
+		if (redisTemplate.opsForHash().hasKey(NEWS_KEY, newsId)) {
+			newsWrap = Optional.of((News) redisTemplate.opsForHash().get(NEWS_KEY, newsId));
+		} else {
+
+			@SuppressWarnings("unchecked")
+			Optional<News> newsDBWrap = (Optional<News>) proceedingJoinPoint.proceed();
+
+			if (newsDBWrap.isPresent()) {
+				redisTemplate.opsForHash().put(NEWS_KEY, newsId, newsDBWrap.get());
+				newsWrap = newsDBWrap;
+			}
+
+		}
+
+		return newsWrap;
+	}
 	
 	@SuppressWarnings("unchecked")
 	@Around(value = "findAllMethod()")
@@ -48,13 +72,13 @@ public class NewsRepositoryCacheRedisAspect extends Cacheable {
 
 		Integer cachingKey = calculateKey(proceedingJoinPoint);
 
-		if (redisTemplate.opsForHash().hasKey(NEWS_LIST_KEY, cachingKey)) {
-			news = (Page<News>) redisTemplate.opsForHash().get(NEWS_LIST_KEY, cachingKey);
+		if (redisTemplate.opsForHash().hasKey(NEWS_PAGE_KEY, cachingKey)) {
+			news = (Page<News>) redisTemplate.opsForHash().get(NEWS_PAGE_KEY, cachingKey);
 		} else {
 			news = (Page<News>) proceedingJoinPoint.proceed();
 
 			if (!news.isEmpty()) {
-				redisTemplate.opsForHash().put(NEWS_LIST_KEY, cachingKey, news);
+				redisTemplate.opsForHash().put(NEWS_PAGE_KEY, cachingKey, news);
 			}
 		}
 
@@ -103,41 +127,15 @@ public class NewsRepositoryCacheRedisAspect extends Cacheable {
 
 		proceedingJoinPoint.proceed();
 
-		//deleting news from cache
 		redisTemplate.opsForHash().delete(NEWS_KEY, newsDeletingId);
-
-		List<Integer> newsDeletingListKeys = new ArrayList<>();
-
-		redisTemplate.opsForHash().entries(NEWS_LIST_KEY).forEach((k, v) -> {
-			@SuppressWarnings("unchecked")
-			List<News> news = (List<News>) v;
-
-			if (news.stream().anyMatch(c -> c.getId().equals(newsDeletingId))) {
-				newsDeletingListKeys.add((Integer) k);
-			}
-
-		});
-
-		newsDeletingListKeys.stream().forEach(key -> redisTemplate.opsForHash().delete(NEWS_LIST_KEY, key));
+		deleteFromRedisCache(NEWS_PAGE_KEY, newsDeletingId);
+		deleteFromRedisCache(NEWS_LIST_KEY, newsDeletingId);
 		
-		//deleting comments from cache	
-		if (!commentDeletingIds.isEmpty()) {
-			List<Integer> commentsDeletingListKeys = new ArrayList<>();
-			
-			commentDeletingIds.forEach(id -> redisTemplate.opsForHash().delete(COMMENT_KEY, id));
-			
-			redisTemplate.opsForHash().entries(COMMENT_LIST_KEY).forEach((k, v) -> {
-				@SuppressWarnings("unchecked")
-				List<Comment> comments = (List<Comment>) v;
-
-				if (comments.stream().anyMatch(c -> commentDeletingIds.contains(c.getId()))) {
-					commentsDeletingListKeys.add((Integer) k);
-				}
-
-			});
-			
-			commentsDeletingListKeys.stream().forEach(key -> redisTemplate.opsForHash().delete(COMMENT_LIST_KEY, key));
-		}
+		commentDeletingIds.stream().forEach(commentDelId -> {
+			redisTemplate.opsForHash().delete(COMMENT_KEY, commentDelId);
+			deleteFromRedisCache(COMMENT_PAGE_KEY, commentDelId);
+			deleteFromRedisCache(COMMENT_LIST_KEY, commentDelId);
+		});
 	
 	}
 

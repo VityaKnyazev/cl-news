@@ -90,7 +90,7 @@ public class CommentServiceImpl implements CommentService {
 	
 	@Override
 	@Transactional(readOnly = true)
-	public List<Comment> showAllByNewsId(Long newsId, Pageable pageable) throws ServiceException {
+	public List<CommentDTO> showAllByNewsId(Long newsId, Pageable pageable) throws ServiceException {
 
 		if (newsId == null) {
 			log.error("Error searching comments on null news id");
@@ -100,12 +100,10 @@ public class CommentServiceImpl implements CommentService {
 		List<Comment> comments = commentRepository.findAllByNewsId(newsId, pageable);
 		
 		if (comments.isEmpty()) {
-			log.error("Error. Can't find comments on given page={} and pagesize={}", pageable.getPageNumber(), pageable.getPageSize());
-			throw new ServiceException(FINDING_ERROR);
+			log.info("Can't find comments on given newsId={}, page={} and pagesize={}", newsId, pageable.getPageNumber(), pageable.getPageSize());
 		}
 
-		return comments;
-		
+		return commentMapperImpl.toCommentsDTOWithoutNews(comments);		
 	}
 
 	@Override

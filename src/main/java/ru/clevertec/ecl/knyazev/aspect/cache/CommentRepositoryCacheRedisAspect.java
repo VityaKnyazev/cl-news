@@ -10,6 +10,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.hibernate.Hibernate;
 import org.hibernate.Session;
+import org.springframework.data.domain.Page;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import jakarta.persistence.PersistenceContext;
@@ -17,15 +18,13 @@ import ru.clevertec.ecl.knyazev.entity.Comment;
 import ru.clevertec.ecl.knyazev.entity.News;
 
 @Aspect
-public class CommentRepositoryCacheRedisAspect extends Cacheable {
+public class CommentRepositoryCacheRedisAspect extends RedisCache {
 	
 	@PersistenceContext
 	private Session session;
 
-	private RedisTemplate<String, Object> commentRedisTemplate;
-
-	public CommentRepositoryCacheRedisAspect(RedisTemplate<String, Object> commentRedisTemplate) {
-		this.commentRedisTemplate = commentRedisTemplate;
+	public CommentRepositoryCacheRedisAspect(RedisTemplate<String, Object> redisTemplate) {
+		super(redisTemplate);
 	}
 
 	@Pointcut(value = "execution(public * ru.clevertec.ecl.knyazev.repository.CommentRepository.findById(..))")
@@ -53,8 +52,8 @@ public class CommentRepositoryCacheRedisAspect extends Cacheable {
 
 		Long commentId = (long) proceedingJoinPoint.getArgs()[0];
 
-		if (commentRedisTemplate.opsForHash().hasKey(COMMENT_KEY, commentId)) {
-			commentWrap = Optional.of((Comment) commentRedisTemplate.opsForHash().get(COMMENT_KEY, commentId));
+		if (redisTemplate.opsForHash().hasKey(COMMENT_KEY, commentId)) {
+			commentWrap = Optional.of((Comment) redisTemplate.opsForHash().get(COMMENT_KEY, commentId));
 		} else {
 
 			@SuppressWarnings("unchecked")
@@ -63,7 +62,7 @@ public class CommentRepositoryCacheRedisAspect extends Cacheable {
 			if (commentDBWrap.isPresent()) {
 				initLazyProperty(commentDBWrap.get());
 
-				commentRedisTemplate.opsForHash().put(COMMENT_KEY, commentId, commentDBWrap.get());
+				redisTemplate.opsForHash().put(COMMENT_KEY, commentId, commentDBWrap.get());
 				commentWrap = commentDBWrap;
 			}
 
@@ -71,23 +70,46 @@ public class CommentRepositoryCacheRedisAspect extends Cacheable {
 
 		return commentWrap;
 	}
+	
+	@SuppressWarnings("unchecked")
+	@Around(value = "findAllMethod()")
+		
+		Page<Comment> cacheAroundfindAllMethod(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
+		
+		Page<Comment> comments = Page.empty();
+
+		Integer cachingKey = calculateKey(proceedingJoinPoint);
+
+		if (redisTemplate.opsForHash().hasKey(COMMENT_PAGE_KEY, cachingKey)) {
+			comments = (Page<Comment>) redisTemplate.opsForHash().get(COMMENT_PAGE_KEY, cachingKey);
+		} else {
+			comments = (Page<Comment>) proceedingJoinPoint.proceed();
+
+			if (!comments.isEmpty()) {
+				comments.stream().forEach(comment -> initLazyProperty(comment));
+				redisTemplate.opsForHash().put(COMMENT_PAGE_KEY, cachingKey, comments);
+			}
+		}
+
+		return comments;
+	}
 
 	@SuppressWarnings("unchecked")
-	@Around(value = "findAllMethod() || findAllByPartCommentTextMethod() || findAllByNewsIdMethod()")
+	@Around(value = "findAllByPartCommentTextMethod() || findAllByNewsIdMethod()")
 	List<Comment> cacheAroundfindAllMethods(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
 
 		List<Comment> comments = new ArrayList<>();
 
 		Integer cachingKey = calculateKey(proceedingJoinPoint);
 
-		if (commentRedisTemplate.opsForHash().hasKey(COMMENT_LIST_KEY, cachingKey)) {
-			comments = (List<Comment>) commentRedisTemplate.opsForHash().get(COMMENT_LIST_KEY, cachingKey);
+		if (redisTemplate.opsForHash().hasKey(COMMENT_LIST_KEY, cachingKey)) {
+			comments = (List<Comment>) redisTemplate.opsForHash().get(COMMENT_LIST_KEY, cachingKey);
 		} else {
 			comments = (List<Comment>) proceedingJoinPoint.proceed();
 
-			if (!comments.isEmpty()) {
-				initLazyProperty(comments.get(0));
-				commentRedisTemplate.opsForHash().put(COMMENT_LIST_KEY, cachingKey, comments);
+			if (!comments.isEmpty()) {				
+				comments.stream().forEach(comment -> initLazyProperty(comment));				
+				redisTemplate.opsForHash().put(COMMENT_LIST_KEY, cachingKey, comments);
 			}
 		}
 
@@ -109,7 +131,7 @@ public class CommentRepositoryCacheRedisAspect extends Cacheable {
 			initLazyProperty(savedComment);
 		}		
 
-		commentRedisTemplate.opsForHash().put(COMMENT_KEY, savedComment.getId(), savedComment);
+		redisTemplate.opsForHash().put(COMMENT_KEY, savedComment.getId(), savedComment);
 
 		return savedComment;
 	}
@@ -118,25 +140,22 @@ public class CommentRepositoryCacheRedisAspect extends Cacheable {
 	void cacheAroundDeleteMethod(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
 
 		Long deletingId = ((Comment) proceedingJoinPoint.getArgs()[0]).getId();
+		
+		Comment commentDB = session.get(Comment.class, deletingId);
+		
+		Long newsDeletingId = commentDB.getNews().getId();
 
 		proceedingJoinPoint.proceed();
 
-		commentRedisTemplate.opsForHash().delete(COMMENT_KEY, deletingId);
-
-		List<Integer> deletingListKeys = new ArrayList<>();
-
-		commentRedisTemplate.opsForHash().entries(COMMENT_LIST_KEY).forEach((k, v) -> {
-			@SuppressWarnings("unchecked")
-			List<Comment> comments = (List<Comment>) v;
-
-			if (comments.stream().anyMatch(c -> c.getId().equals(deletingId))) {
-				deletingListKeys.add((Integer) k);
-			}
-
-		});
-
-		deletingListKeys.stream().forEach(key -> commentRedisTemplate.opsForHash().delete(COMMENT_LIST_KEY, key));
-
+		//Deleting comment from cache
+		redisTemplate.opsForHash().delete(COMMENT_KEY, deletingId);
+		deleteFromRedisCache(COMMENT_PAGE_KEY, deletingId);
+		deleteFromRedisCache(COMMENT_LIST_KEY, deletingId);
+		
+		//deleting bound news from cache
+		redisTemplate.opsForHash().delete(NEWS_KEY, newsDeletingId);
+		deleteFromRedisCache(NEWS_PAGE_KEY, newsDeletingId);
+		deleteFromRedisCache(NEWS_LIST_KEY, newsDeletingId);
 	}
 
 	private void initLazyProperty(Comment dbComment) {

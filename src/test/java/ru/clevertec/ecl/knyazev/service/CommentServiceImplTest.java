@@ -340,11 +340,12 @@ public class CommentServiceImplTest {
 		Pageable inputPageable = PageRequest.of(inputPage, inputPageSize, Sort.by(inputSortOrder));
 		
 		
-		List<Comment> actualComments = commentServiceImpl.showAllByNewsId(inputNewsId, inputPageable);
+		List<CommentDTO> actualComments = commentServiceImpl.showAllByNewsId(inputNewsId, inputPageable);
 		
 		assertAll(
 					() -> assertThat(actualComments).isNotEmpty(),
-					() -> assertThat(actualComments).hasSize(2)
+					() -> assertThat(actualComments).hasSize(2),
+					() -> assertThat(actualComments.stream()).allMatch(c -> c.getNewsDTO() == null)
 				);
 		
 	}
@@ -365,7 +366,7 @@ public class CommentServiceImplTest {
 	}
 	
 	@Test
-	public void checkShowAllByNewsIdShouldThrowServiceExceptionWhenNewsNotFound() {
+	public void checkShowAllByNewsIdShouldLogAndReturnCommentsEmptyList() throws ServiceException {
 		
 		Mockito.when(commentRepositoryMock.findAllByNewsId(Mockito.anyLong(), Mockito.any(Pageable.class)))
 	           .thenReturn(new ArrayList<>());
@@ -378,8 +379,9 @@ public class CommentServiceImplTest {
 		
 		Pageable inputPageable = PageRequest.of(inputPage, inputPageSize, Sort.by(inputSortOrder));
 		
-		assertThatExceptionOfType(ServiceException.class).isThrownBy(() -> 
-		                                                  commentServiceImpl.showAllByNewsId(inputNewsId, inputPageable));
+		List<CommentDTO> actualCommentsDTO = commentServiceImpl.showAllByNewsId(inputNewsId, inputPageable);
+		
+		assertThat(actualCommentsDTO).isEmpty();
 	}
 	
 	@Test

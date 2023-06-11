@@ -13,10 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import ru.clevertec.ecl.knyazev.dto.CommentDTO;
 import ru.clevertec.ecl.knyazev.dto.NewsDTO;
-import ru.clevertec.ecl.knyazev.entity.Comment;
 import ru.clevertec.ecl.knyazev.entity.News;
-import ru.clevertec.ecl.knyazev.mapper.CommentNewsMapper;
 import ru.clevertec.ecl.knyazev.mapper.NewsMapper;
 import ru.clevertec.ecl.knyazev.repository.NewsRepository;
 import ru.clevertec.ecl.knyazev.service.exception.ServiceException;
@@ -33,7 +32,6 @@ public class NewsServiceImpl implements NewsService {
 	private static final String REMOVING_ERROR = "Error on removing news";
 	
 	private NewsMapper newsMapperImpl;
-	private CommentNewsMapper commentNewsMapperImpl;
 	
 	private NewsRepository newsRepository;
 	
@@ -48,7 +46,7 @@ public class NewsServiceImpl implements NewsService {
 			return new ServiceException(FINDING_ERROR);
 		});
 		
-		return newsMapperImpl.toNewsDTO(newsDB);
+		return newsMapperImpl.toNewsDTOWithoutComments(newsDB);
 		
 	}
 	
@@ -56,11 +54,13 @@ public class NewsServiceImpl implements NewsService {
 	@Transactional(readOnly = true)
 	public NewsDTO showById(Long id, Pageable commentsPageable) throws ServiceException {
 		
-		List<Comment> comments = commentServiceImpl.showAllByNewsId(id, commentsPageable);
+		NewsDTO newsDTO = showById(id);
 		
-		News news = commentNewsMapperImpl.toNews(comments);
+		List<CommentDTO> commentsDTO = commentServiceImpl.showAllByNewsId(id, commentsPageable);
 		
-		return newsMapperImpl.toNewsDTO(news);
+		newsDTO.setComments(commentsDTO.isEmpty() ? null : commentsDTO);
+		
+		return newsDTO;
 	}
 
 	@Override

@@ -32,11 +32,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.testcontainers.shaded.com.google.common.collect.Lists;
 
+import ru.clevertec.ecl.knyazev.dto.CommentDTO;
 import ru.clevertec.ecl.knyazev.dto.NewsDTO;
 import ru.clevertec.ecl.knyazev.entity.Comment;
 import ru.clevertec.ecl.knyazev.entity.News;
-import ru.clevertec.ecl.knyazev.mapper.CommentNewsMapper;
-import ru.clevertec.ecl.knyazev.mapper.CommentNewsMapperImpl;
 import ru.clevertec.ecl.knyazev.mapper.NewsMapper;
 import ru.clevertec.ecl.knyazev.mapper.NewsMapperImpl;
 import ru.clevertec.ecl.knyazev.repository.NewsRepository;
@@ -50,9 +49,6 @@ public class NewsServiceImplTest {
 	
 	@Spy
 	private NewsMapper newsMapperImpl = new NewsMapperImpl();
-	
-	@Spy
-	private CommentNewsMapper commentNewsMapperImpl = new CommentNewsMapperImpl();
 	
 	@Mock
 	private CommentService commentServiceImplMock;
@@ -93,7 +89,7 @@ public class NewsServiceImplTest {
 		
 		assertAll(
 					() -> assertThat(actualNewsDTO).isNotNull(),
-					() -> assertThat(actualNewsDTO.getComments()).hasSize(1)
+					() -> assertThat(actualNewsDTO.getComments()).isNullOrEmpty()
 				);
 	}
 	
@@ -120,31 +116,31 @@ public class NewsServiceImplTest {
 	
 	@Test
 	public void checkShowByIdShouldReturnNewsDTOWithCommentsPagination() throws ServiceException {
-		List<Comment> expectedComments = List.of(
-					Comment.builder()
+		
+		Optional<News> expectedNewsWrap = Optional.of(News.builder()
+									     .id(1L)
+									     .title("Об открытии двери")
+									     .text("Научное обоснование метода открытия двери...")
+									     .build());
+		
+		List<CommentDTO> expectedCommentsDTO = List.of(
+					CommentDTO.builder()
 						   .id(2L)
-						   .news(News.builder()
-								     .id(1L)
-								     .title("Об открытии двери")
-								     .text("Научное обоснование метода открытия двери...")
-								     .build())
 						   .text("Прекрасное обоснование непонятного.")
 						   .userName("Vova")
 						   .build(),
-				    Comment.builder()
+				    CommentDTO.builder()
 						   .id(5L)
-						   .news(News.builder()
-								     .id(1L)
-								     .title("Об открытии двери")
-								     .text("Научное обоснование метода открытия двери...")
-								     .build())
 						   .text("Непонятная интерпретация явления дождя.")
 						   .userName("Kolya")
 						   .build());
 		
+		Mockito.when(newsRepositoryMock.findById(Mockito.anyLong()))
+			   .thenReturn(expectedNewsWrap);
+		
 		Mockito.when(commentServiceImplMock.showAllByNewsId(Mockito.anyLong(), 
 															Mockito.any(Pageable.class)))
-			   .thenReturn(expectedComments);
+			   .thenReturn(expectedCommentsDTO);
 		
 		Long inputNewsId = 3L;
 		
