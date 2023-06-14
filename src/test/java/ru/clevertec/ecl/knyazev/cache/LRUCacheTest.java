@@ -14,7 +14,7 @@ public class LRUCacheTest {
 	private static final String CACHE_TYPE = "LRU";
 	private static final Integer CACHE_SIZE = 3;
 	
-	private CacheFactory<Long, Comment> cacheFactory = new CacheFactory<>();
+	private CacheFactory cacheFactory = new CacheFactory();
 	
 	private Cache<Long, Comment> lruCache;
 	

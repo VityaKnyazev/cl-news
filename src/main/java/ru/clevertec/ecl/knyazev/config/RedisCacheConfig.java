@@ -7,8 +7,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 
-import ru.clevertec.ecl.knyazev.aspect.cache.CommentRepositoryCacheRedisAspect;
-import ru.clevertec.ecl.knyazev.aspect.cache.NewsRepositoryCacheRedisAspect;
+import ru.clevertec.ecl.knyazev.aspect.cache.redis.CommentRepositoryCacheRedisAspect;
+import ru.clevertec.ecl.knyazev.aspect.cache.redis.NewsRepositoryCacheRedisAspect;
 
 @ConditionalOnExpression(
 		  "${aspect.cache.enable:true} and '${aspect.cache.type}'.equals('redis')"

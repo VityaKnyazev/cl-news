@@ -14,11 +14,18 @@ spring:
       activate:
          on-profile: dev
 
+#Aspect settings for using controller logging and cache mechanism
 aspect:
+# Controller layer request and response logging controllerLogging: enable | disable
    controllerLogging: disable
+# Settings for cache: enable: true | false, type: redis | custom 
+# Also settings for custom caching: algorithm: lru | lfu and cache size
    cache:
       enable: true
-      type: redis 
+      type: custom
+      custom:
+         algorithm: lru
+         size: 10
 
 connection:
    db:

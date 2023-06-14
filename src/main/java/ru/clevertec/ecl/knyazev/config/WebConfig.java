@@ -33,7 +33,7 @@ public class WebConfig {
 	
 
 	@Bean
-	public DataSource hikariDataSource() {
+	DataSource hikariDataSource() {
 		HikariConfig hikariConfig = new HikariConfig();
 		hikariConfig.setDriverClassName(databaseConfig.getDriverClassName());
 		hikariConfig.setJdbcUrl(databaseConfig.getJdbcUrl());

@@ -1,4 +1,4 @@
-package ru.clevertec.ecl.knyazev.aspect.cache;
+package ru.clevertec.ecl.knyazev.aspect.cache.redis;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
