@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,6 +22,7 @@ import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -55,6 +57,13 @@ public class NewsServiceImplTest {
 
 	@InjectMocks
 	private NewsServiceImpl newsServiceImpl;
+	
+	private static MockedStatic<SecurityUserService> securityUserServiceMock;
+	
+	@BeforeAll
+	public static void setup() {
+		securityUserServiceMock = Mockito.mockStatic(SecurityUserService.class);		
+	}
 	
 	@Test
 	public void checkShowByIdShouldReturnNewsDTO() throws ServiceException {
@@ -362,6 +371,11 @@ public class NewsServiceImplTest {
 								.time(LocalDateTime.now())
 								.build();
 		
+		String expectedSecurityUserName = "Valik";
+		
+		securityUserServiceMock.when(SecurityUserService::getSecurityUserName)
+							   .thenReturn(expectedSecurityUserName);
+		
 		Mockito.when(newsRepositoryMock.save(Mockito.any(News.class)))
 		       .thenReturn(expectedNews);
 		
@@ -390,6 +404,11 @@ public class NewsServiceImplTest {
 	@Test
 	public void checkAddShouldThrowServiceExceptioOnFailedSaving() {
 		
+		String expectedSecurityUserName = "Valik";
+		
+		securityUserServiceMock.when(SecurityUserService::getSecurityUserName)
+							   .thenReturn(expectedSecurityUserName);
+		
 		Mockito.when(newsRepositoryMock.save(Mockito.any(News.class)))
 		       .thenThrow(new DataAccessException("Constraint on saving news") {
 
@@ -408,24 +427,40 @@ public class NewsServiceImplTest {
 	@Test
 	public void checkChangeShouldReturnNewsDTO() throws ServiceException {
 		
+		Optional<News> dbNewsWrap = Optional.of(News.builder()
+				  .id(7L)
+				  .title("Первый в мире и стране...")
+				  .text("Наш знаменитый мыслитель, ученый и бывший спортсмен...")
+				  .authorName("Valik")
+				  .build());
+		
 		News expectedChangedNews = News.builder()
 								.id(7L)
 								.title("Наш современник")
 								.text("Первый просветитель, поставивший точки над \"ы\"...")
+								.authorName("Valik")
 								.build();
-						
-		Mockito.when(newsRepositoryMock.save(Mockito.any(News.class)))
-	       .thenReturn(expectedChangedNews);
 		
+		String expectedSecurityUserName = "Valik";
 		
-		Optional<News> dbNewsWrap = Optional.of(News.builder()
-									  .id(7L)
-									  .title("Первый в мире и стране...")
-									  .text("Наш знаменитый мыслитель, ученый и бывший спортсмен...")
-									  .build());
+		List<String> expectedUserRoles = new ArrayList<>() {
 			
+			private static final long serialVersionUID = -2985849103948103580L;
+
+		{
+			add("ROLE_JOURNALIST");	
+		}};
+		
+		securityUserServiceMock.when(SecurityUserService::getSecurityUserName)
+							   .thenReturn(expectedSecurityUserName);
+		securityUserServiceMock.when(SecurityUserService::getSecurityUserRoles)
+		   					   .thenReturn(expectedUserRoles);
+					
 		Mockito.when(newsRepositoryMock.findById(Mockito.anyLong()))
-		       .thenReturn(dbNewsWrap);
+	       .thenReturn(dbNewsWrap);
+		
+		Mockito.when(newsRepositoryMock.save(Mockito.any(News.class)))
+	       .thenReturn(expectedChangedNews);		
 		
 		NewsDTO inputChangingNews = NewsDTO.builder()
 										.id(7L)
@@ -468,16 +503,70 @@ public class NewsServiceImplTest {
 	}
 	
 	@Test
+	public void checkChangeShouldThrowServiceExceptionWhenUserChangingForeignNews() {
+		
+		Optional<News> dbNewsWrap = Optional.of(News.builder()
+				  .id(7L)
+				  .title("Первый в мире и стране...")
+				  .text("Наш знаменитый мыслитель, ученый и бывший спортсмен...")
+				  .authorName("Valik")
+				  .build());
+		
+		String expectedSecurityUserName = "Anton";
+		
+		List<String> expectedUserRoles = new ArrayList<>() {
+			
+			private static final long serialVersionUID = -2985849103948103580L;
+
+		{
+			add("ROLE_JOURNALIST");	
+		}};
+
+		Mockito.when(newsRepositoryMock.findById(Mockito.anyLong()))
+			   .thenReturn(dbNewsWrap);
+		
+		securityUserServiceMock.when(SecurityUserService::getSecurityUserName)
+		   .thenReturn(expectedSecurityUserName);
+		securityUserServiceMock.when(SecurityUserService::getSecurityUserRoles)
+		   .thenReturn(expectedUserRoles);
+		
+		NewsDTO inputNewsDTO = NewsDTO.builder()
+				  .id(7L)
+                  .title("Обнови нас, пожалуйста без констрейнта...")
+                  .text("Должен выбросить исключение при обновлении меня в базе..")
+                  .build();
+
+		assertThatExceptionOfType(ServiceException.class).isThrownBy(() -> 
+                                    newsServiceImpl.change(inputNewsDTO));
+	}
+	
+	@Test
 	public void checkChangeShouldThrowServiceExceptionOnFailedUpdating() {
 		
 		Optional<News> dbNewsWrap = Optional.of(News.builder()
 				  .id(7L)
 				  .title("Первый в мире и стране...")
 				  .text("Наш знаменитый мыслитель, ученый и бывший спортсмен...")
+				  .authorName("Valik")
 				  .build());
+		
+		String expectedSecurityUserName = "Valik";
+		
+		List<String> expectedUserRoles = new ArrayList<>() {
+			
+			private static final long serialVersionUID = -2985849103948103580L;
+
+		{
+			add("ROLE_JOURNALIST");	
+		}};
 
 		Mockito.when(newsRepositoryMock.findById(Mockito.anyLong()))
 			   .thenReturn(dbNewsWrap);
+		
+		securityUserServiceMock.when(SecurityUserService::getSecurityUserName)
+		   .thenReturn(expectedSecurityUserName);
+		securityUserServiceMock.when(SecurityUserService::getSecurityUserRoles)
+		   .thenReturn(expectedUserRoles);
 		
 		Mockito.when(newsRepositoryMock.save(Mockito.any(News.class)))
 		       .thenThrow(new DataAccessException("Constraint on changing news") {
@@ -502,10 +591,26 @@ public class NewsServiceImplTest {
 				  .id(7L)
 				  .title("Первый в мире и стране...")
 				  .text("Наш знаменитый мыслитель, ученый и бывший спортсмен...")
+				  .authorName("Valik")
 				  .build());
+		
+		String expectedSecurityUserName = "Valik";
+		
+		List<String> expectedUserRoles = new ArrayList<>() {
+			
+			private static final long serialVersionUID = -2985849103948103580L;
+
+		{
+			add("ROLE_JOURNALIST");	
+		}};
 
 		Mockito.when(newsRepositoryMock.findById(Mockito.anyLong()))
 			   .thenReturn(dbNewsWrap);
+		
+		securityUserServiceMock.when(SecurityUserService::getSecurityUserName)
+		   .thenReturn(expectedSecurityUserName);
+		securityUserServiceMock.when(SecurityUserService::getSecurityUserRoles)
+		   .thenReturn(expectedUserRoles);
 		
 		Mockito.doNothing().when(newsRepositoryMock).delete(Mockito.any(News.class));
 		
@@ -542,16 +647,68 @@ public class NewsServiceImplTest {
 	}
 	
 	@Test
-	public void checkRemoveShouldThrowServiceExceptioOnFailedDeleting() {
-		
+	public void checkRemoveShouldThrowServiceExceptionWhenUserRemovingForeignNews() {
 		Optional<News> dbNewsWrap = Optional.of(News.builder()
 				  .id(8L)
 				  .title("Первый в мире и стране...")
 				  .text("Наш знаменитый мыслитель, ученый и бывший спортсмен...")
+				  .authorName("Anton")
 				  .build());
+		
+		String expectedSecurityUserName = "Mark";
+		
+		List<String> expectedUserRoles = new ArrayList<>() {
+			
+			private static final long serialVersionUID = -2985849103948103580L;
+
+		{
+			add("ROLE_JOURNALIST");	
+		}};
 
 		Mockito.when(newsRepositoryMock.findById(Mockito.anyLong()))
 			   .thenReturn(dbNewsWrap);
+		
+		securityUserServiceMock.when(SecurityUserService::getSecurityUserName)
+		   .thenReturn(expectedSecurityUserName);
+		securityUserServiceMock.when(SecurityUserService::getSecurityUserRoles)
+		   .thenReturn(expectedUserRoles);
+		
+		NewsDTO inputNewsDTO = NewsDTO.builder()
+				  .id(8L)
+				  .build();
+		
+		assertThatExceptionOfType(ServiceException.class).isThrownBy(() -> 
+        						  newsServiceImpl.remove(inputNewsDTO));
+	}
+	
+	
+	@Test
+	public void checkRemoveShouldThrowServiceExceptioOnFailedDeleting() {
+		
+		Optional<News> dbNewsWrap = Optional.of(News.builder()
+				  .id(7L)
+				  .title("Первый в мире и стране...")
+				  .text("Наш знаменитый мыслитель, ученый и бывший спортсмен...")
+				  .authorName("Anton")
+				  .build());
+		
+		String expectedSecurityUserName = "Anton";
+		
+		List<String> expectedUserRoles = new ArrayList<>() {
+			
+			private static final long serialVersionUID = -2985849103948103580L;
+
+		{
+			add("ROLE_JOURNALIST");	
+		}};
+
+		Mockito.when(newsRepositoryMock.findById(Mockito.anyLong()))
+			   .thenReturn(dbNewsWrap);
+		
+		securityUserServiceMock.when(SecurityUserService::getSecurityUserName)
+		   .thenReturn(expectedSecurityUserName);
+		securityUserServiceMock.when(SecurityUserService::getSecurityUserRoles)
+		   .thenReturn(expectedUserRoles);
 		
 		Mockito.doThrow(new DataAccessException("Deleting news constraint") {
 			

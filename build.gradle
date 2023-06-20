@@ -7,11 +7,17 @@ plugins {
 }
 
 ext {   
+	feignClientVersion = '4.0.3'
+	
+	feignJacksonVersion = '12.3'
+
 	springdocVersion = '2.1.0'
  
 	hibernateValidatorVersion = '8.0.0.Final'
 	
 	postgresqlConVersion = '42.6.0'
+	
+	jwtVersion = '4.4.0'
 
     mapStructVersion = '1.5.4.Final'
 	
@@ -40,14 +46,20 @@ dependencies {
 	implementation "org.springframework.boot:spring-boot-starter-data-rest"
 	implementation "org.springframework.boot:spring-boot-starter-web"
 	implementation "org.springframework.boot:spring-boot-starter-data-redis"
+	implementation "org.springframework.boot:spring-boot-starter-security"
 	
-	implementation("org.springframework.boot:spring-boot-starter-actuator")
+	implementation "org.springframework.boot:spring-boot-starter-actuator"
+	
+	implementation "org.springframework.cloud:spring-cloud-starter-openfeign:$feignClientVersion"
+	implementation "io.github.openfeign:feign-jackson:$feignJacksonVersion"
 	
 	implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:$springdocVersion"
 	
 	implementation "org.hibernate.validator:hibernate-validator:$hibernateValidatorVersion"
 	
 	implementation "org.postgresql:postgresql:$postgresqlConVersion"
+	
+	implementation "com.auth0:java-jwt:$jwtVersion"
 	
 	liquibaseRuntime "org.liquibase:liquibase-core:$liquibaseVersion"
 	liquibaseRuntime "info.picocli:picocli:$piocliVersion"
@@ -61,18 +73,17 @@ dependencies {
     
     annotationProcessor "org.projectlombok:lombok-mapstruct-binding:$lombokMapstructBindingVersion"
 	
-	testImplementation "org.springframework.boot:spring-boot-starter-test"
-	
 	testCompileOnly "org.projectlombok:lombok:$lombokVersion"
 	testAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
 	
+	testImplementation "org.springframework.boot:spring-boot-starter-test"
 	testImplementation "org.testcontainers:postgresql:$testcontainersPostgresVersion"
 	testImplementation "org.liquibase:liquibase-core:$liquibaseVersion"
 }
 
 liquibase {
   activities {
-    sales {
+    news {
     	  changeLogFile "/src/main/resources/liquibase/db-news-changelog.xml"
           driver "org.postgresql.Driver"
 		  url "jdbc:postgresql://localhost:5432/news?useUnicode=true&characterEncoding=UTF-8"

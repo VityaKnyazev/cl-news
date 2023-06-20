@@ -31,6 +31,8 @@ public class NewsServiceImpl implements NewsService {
 	private static final String CHANGING_ERROR = "Error on changing news";
 	private static final String REMOVING_ERROR = "Error on removing news";
 	
+	private static final String USER_NAME_ERROR = "Current user didn't create current news or user name has been changed";
+	
 	private NewsMapper newsMapperImpl;
 	
 	private NewsRepository newsRepository;
@@ -114,7 +116,9 @@ public class NewsServiceImpl implements NewsService {
 		
 		try {
 			News savingNews = newsMapperImpl.toNews(newsDTO);
+			
 			savingNews.setTime(LocalDateTime.now());
+			savingNews.setAuthorName(SecurityUserService.getSecurityUserName());
 			
 			News savedNews = newsRepository.save(savingNews);
 			
@@ -136,6 +140,12 @@ public class NewsServiceImpl implements NewsService {
 		
 		try {
 			News dbNews = newsRepository.findById(newsDTO.getId()).orElseThrow(() -> new ServiceException(CHANGING_ERROR));
+		
+			if (!isCurrentUserAdminOrRecordCreater(dbNews.getAuthorName())) {
+				log.error(USER_NAME_ERROR);
+				throw new ServiceException(CHANGING_ERROR);
+			}
+			
 			News changingNews = newsMapperImpl.toNews(newsDTO);
 			
 			String changingNewsTitle = changingNews.getTitle();
@@ -169,6 +179,11 @@ public class NewsServiceImpl implements NewsService {
 		
 		try {
 			News dbNews = newsRepository.findById(newsDTO.getId()).orElseThrow(() -> new ServiceException(REMOVING_ERROR));
+			
+			if (!isCurrentUserAdminOrRecordCreater(dbNews.getAuthorName())) {
+				log.error(USER_NAME_ERROR);
+				throw new ServiceException(REMOVING_ERROR);
+			}
 			
 			newsRepository.delete(dbNews);
 			

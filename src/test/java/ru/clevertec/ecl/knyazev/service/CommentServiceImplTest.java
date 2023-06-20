@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,6 +22,7 @@ import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -52,6 +54,13 @@ public class CommentServiceImplTest {
 	
 	@InjectMocks
 	private CommentServiceImpl commentServiceImpl;
+	
+	private static MockedStatic<SecurityUserService> securityUserServiceMock;
+	
+	@BeforeAll
+	public static void setup() {
+		securityUserServiceMock = Mockito.mockStatic(SecurityUserService.class);		
+	}
 	
 	@Test
 	public void checkShowByIdShouldReturnCommentDTO() throws ServiceException {
@@ -400,6 +409,11 @@ public class CommentServiceImplTest {
 								.time(LocalDateTime.now())
 								.build();
 		
+		String expectedSecurityUserName = "Misha";
+		
+		securityUserServiceMock.when(SecurityUserService::getSecurityUserName)
+        .thenReturn(expectedSecurityUserName);
+		
 		Mockito.when(commentRepositoryMock.save(Mockito.any(Comment.class)))
 		       .thenReturn(expectedComment);
 		
@@ -430,6 +444,11 @@ public class CommentServiceImplTest {
 	@Test
 	public void checkAddShouldThrowServiceExceptioOnFailedSaving() {
 		
+		String expectedSecurityUserName = "Masha";
+		
+		securityUserServiceMock.when(SecurityUserService::getSecurityUserName)
+		                       .thenReturn(expectedSecurityUserName);
+		
 		Mockito.when(commentRepositoryMock.save(Mockito.any(Comment.class)))
 		       .thenThrow(new DataAccessException("Constraint on saving comment") {
 
@@ -441,7 +460,6 @@ public class CommentServiceImplTest {
 											          .id(5L)
 											          .build())
 				                      .text("Сохрани нас правильно, пожалуйста...")
-				                      .userName("Marina")
 				                      .build();
 		
 		assertThatExceptionOfType(ServiceException.class).isThrownBy(() -> 
@@ -450,19 +468,6 @@ public class CommentServiceImplTest {
 	
 	@Test
 	public void checkChangeShouldReturnCommentDTO() throws ServiceException {
-		
-		Comment expectedChangedComment = Comment.builder()
-										.id(7L)
-										.news(News.builder()
-												  .id(6L)
-												  .build())
-										.userName("Fernando")
-										.text("Тяжеловато воспринимать такие предложения")
-										.build();
-						
-		Mockito.when(commentRepositoryMock.save(Mockito.any(Comment.class)))
-	       .thenReturn(expectedChangedComment);
-		
 		
 		Optional<Comment> dbCommentWrap = Optional.of(
 				Comment.builder()
@@ -474,11 +479,40 @@ public class CommentServiceImplTest {
 				.text("Тяжеловато воспринимать предложения не понимая сути")
 				.build()
 				);
-			
-		Mockito.when(commentRepositoryMock.findById(Mockito.anyLong()))
-		       .thenReturn(dbCommentWrap);
 		
-		CommentDTO inputChangingComment = CommentDTO.builder()
+		String expectedSecurityUserName = "Mario";
+		
+		List<String> expectedUserRoles = new ArrayList<>() {
+			
+			private static final long serialVersionUID = -2985849103948103580L;
+
+		{
+			add("ROLE_SUBSCRIBER");	
+		}};
+		
+		Comment expectedChangedComment = Comment.builder()
+		.id(7L)
+		.news(News.builder()
+				  .id(6L)
+				  .build())
+		.text("Тяжеловато воспринимать такие предложения")
+		.userName("Mario")
+		.build();
+		
+		Mockito.when(commentRepositoryMock.findById(Mockito.anyLong()))
+	       .thenReturn(dbCommentWrap);
+		
+		securityUserServiceMock.when(SecurityUserService::getSecurityUserName)
+		                       .thenReturn(expectedSecurityUserName);
+		securityUserServiceMock.when(SecurityUserService::getSecurityUserRoles)
+        .thenReturn(expectedUserRoles);
+		
+						
+		Mockito.when(commentRepositoryMock.save(Mockito.any(Comment.class)))
+	       .thenReturn(expectedChangedComment);		
+		
+		
+		CommentDTO inputChangingCommentDTO = CommentDTO.builder()
 								.id(7L)
 								.newsDTO(NewsDTO.builder()
 										  .id(6L)
@@ -487,7 +521,7 @@ public class CommentServiceImplTest {
 								.text("Тяжеловато воспринимать такие предложения")
 								.build();
 		
-		CommentDTO actualCommentDTO = commentServiceImpl.change(inputChangingComment);
+		CommentDTO actualCommentDTO = commentServiceImpl.change(inputChangingCommentDTO);
 		
 		assertAll(
 					() -> assertThat(actualCommentDTO.getText())
@@ -504,6 +538,53 @@ public class CommentServiceImplTest {
 		
 		assertThatExceptionOfType(ServiceException.class).isThrownBy(() -> 
 		                                                  commentServiceImpl.change(invalidCommentDTO));
+		
+	}
+	
+	@Test
+	public void 
+	checkChangeShouldThrowServiceExceptionWhenUserChangingForeignComment() {
+		
+		Optional<Comment> dbCommentWrap = Optional.of(
+				Comment.builder()
+				.id(7L)
+				.news(News.builder()
+						  .id(6L)
+						  .build())
+				.userName("Mario")
+				.text("Тяжеловато воспринимать предложения не понимая сути")
+				.build()
+				);
+		
+		String expectedSecurityUserName = "Mars";
+		
+		List<String> expectedUserRoles = new ArrayList<>() {
+			
+			private static final long serialVersionUID = -2985849103948103580L;
+
+		{
+			add("ROLE_SUBSCRIBER");	
+		}};
+		
+		
+		Mockito.when(commentRepositoryMock.findById(Mockito.anyLong()))
+	       .thenReturn(dbCommentWrap);
+		
+		securityUserServiceMock.when(SecurityUserService::getSecurityUserName)
+		                       .thenReturn(expectedSecurityUserName);
+		securityUserServiceMock.when(SecurityUserService::getSecurityUserRoles)
+        .thenReturn(expectedUserRoles);
+		
+		CommentDTO inputChangingCommentDTO = CommentDTO.builder()
+				.id(7L)
+				.newsDTO(NewsDTO.builder()
+						  .id(6L)
+						  .build())
+				.text("Тяжеловато воспринимать такие предложения")
+				.build();
+		
+		assertThatExceptionOfType(ServiceException.class).isThrownBy(() -> 
+		  commentServiceImpl.change(inputChangingCommentDTO));
 		
 	}
 	
@@ -538,8 +619,24 @@ public class CommentServiceImplTest {
 									  .userName("Petya")
 									  .build());
 
+		String expectedSecurityUserName = "Petya";
+		
+		List<String> expectedUserRoles = new ArrayList<>() {
+			
+			private static final long serialVersionUID = -2985849103948103580L;
+
+		{
+			add("ROLE_SUBSCRIBER");	
+		}};
+		
+		
 		Mockito.when(commentRepositoryMock.findById(Mockito.anyLong()))
-			   .thenReturn(dbCommentWrap);
+		   .thenReturn(dbCommentWrap);
+		
+		securityUserServiceMock.when(SecurityUserService::getSecurityUserName)
+		                       .thenReturn(expectedSecurityUserName);
+		securityUserServiceMock.when(SecurityUserService::getSecurityUserRoles)
+        .thenReturn(expectedUserRoles);
 		
 		Mockito.when(commentRepositoryMock.save(Mockito.any(Comment.class)))
 		       .thenThrow(new DataAccessException("Constraint on changing comment") {
@@ -551,8 +648,7 @@ public class CommentServiceImplTest {
 									  .id(7L)
 									  .newsDTO(NewsDTO.builder()
 											          .build())
-				                      .text("Обнови нас, пожалуйста без констрейнта...")
-				                      .userName("Vanya")
+				                      .text("Обнови нас, пожалуйста без констрейнта...")				                  
 				                      .build();
 		
 		assertThatExceptionOfType(ServiceException.class).isThrownBy(() -> 
@@ -570,11 +666,26 @@ public class CommentServiceImplTest {
 						    .text("Делимся важными новостями с Вами...")
 						    .build())
 				  .text("Наш знаменитый мыслитель, ученый и бывший спортсмен...")
-				  .userName("Misha")
+				  .userName("Petya")
 				  .build());
+		
+		String expectedSecurityUserName = "Petya";
+		
+		List<String> expectedUserRoles = new ArrayList<>() {
+			
+			private static final long serialVersionUID = -2985849103948103580L;
+
+		{
+			add("ROLE_SUBSCRIBER");	
+		}};
 
 		Mockito.when(commentRepositoryMock.findById(Mockito.anyLong()))
 			   .thenReturn(dbCommentWrap);
+		
+		securityUserServiceMock.when(SecurityUserService::getSecurityUserName)
+        .thenReturn(expectedSecurityUserName);
+		securityUserServiceMock.when(SecurityUserService::getSecurityUserRoles)
+		.thenReturn(expectedUserRoles);
 		
 		Mockito.doNothing().when(commentRepositoryMock).delete(Mockito.any(Comment.class));
 		
@@ -611,7 +722,7 @@ public class CommentServiceImplTest {
 	}
 	
 	@Test
-	public void checkRemoveShouldThrowServiceExceptioOnFailedDeleting() {
+	public void checkRemoveShouldThrowServiceExceptionWhenUserChangingForeignComment() {
 		
 		Optional<Comment> dbCommentWrap = Optional.of(Comment.builder()
 				  .id(8L)
@@ -620,9 +731,65 @@ public class CommentServiceImplTest {
 						  .title("О великих людях")
 						  .text("Сегодня мы напишем о нелегкой судьбе человека ...")
 						  .build())
-				  .userName("Sasha")
+				  .userName("Petya")
 				  .text("Наш знаменитый мыслитель, ученый и бывший спортсмен не победил")
 				  .build());
+		
+		String expectedSecurityUserName = "Vanya";
+		
+		List<String> expectedUserRoles = new ArrayList<>() {
+			
+			private static final long serialVersionUID = -2985849103948103580L;
+
+		{
+			add("ROLE_SUBSCRIBER");	
+		}};
+		
+		securityUserServiceMock.when(SecurityUserService::getSecurityUserName)
+      .thenReturn(expectedSecurityUserName);
+		securityUserServiceMock.when(SecurityUserService::getSecurityUserRoles)
+		.thenReturn(expectedUserRoles);
+
+		Mockito.when(commentRepositoryMock.findById(Mockito.anyLong()))
+			   .thenReturn(dbCommentWrap);
+		
+		CommentDTO inputCommentDTO = CommentDTO.builder()
+				  .id(8L)
+				  .build();
+
+		assertThatExceptionOfType(ServiceException.class).isThrownBy(() -> 
+		                                    commentServiceImpl.remove(inputCommentDTO));
+				
+	}
+	
+	@Test
+	public void checkRemoveShouldThrowServiceExceptionOnFailedDeleting() {
+		
+		Optional<Comment> dbCommentWrap = Optional.of(Comment.builder()
+				  .id(8L)
+				  .news(News.builder()
+						  .id(8L)
+						  .title("О великих людях")
+						  .text("Сегодня мы напишем о нелегкой судьбе человека ...")
+						  .build())
+				  .userName("Petya")
+				  .text("Наш знаменитый мыслитель, ученый и бывший спортсмен не победил")
+				  .build());
+		
+		String expectedSecurityUserName = "Petya";
+		
+		List<String> expectedUserRoles = new ArrayList<>() {
+			
+			private static final long serialVersionUID = -2985849103948103580L;
+
+		{
+			add("ROLE_SUBSCRIBER");	
+		}};
+		
+		securityUserServiceMock.when(SecurityUserService::getSecurityUserName)
+        .thenReturn(expectedSecurityUserName);
+		securityUserServiceMock.when(SecurityUserService::getSecurityUserRoles)
+		.thenReturn(expectedUserRoles);
 
 		Mockito.when(commentRepositoryMock.findById(Mockito.anyLong()))
 			   .thenReturn(dbCommentWrap);

@@ -31,6 +31,8 @@ public class CommentServiceImpl implements CommentService {
 	private static final String CHANGING_ERROR = "Error on changing comment";
 	private static final String REMOVING_ERROR = "Error on removing comment";
 	
+	private static final String USER_NAME_ERROR = "Current user didn't create current comment or user name has been changed";
+	
 	private CommentMapper commentMapperImpl;
 	
 	private CommentRepository commentRepository;
@@ -121,6 +123,8 @@ public class CommentServiceImpl implements CommentService {
 			Comment savingComment = commentMapperImpl.toComment(commentDTO);
 			savingComment.setTime(LocalDateTime.now());
 			
+			savingComment.setUserName(SecurityUserService.getSecurityUserName());
+			
 			Comment savedComment = commentRepository.save(savingComment);
 			
 			return commentMapperImpl.toCommentDTO(savedComment);
@@ -143,18 +147,19 @@ public class CommentServiceImpl implements CommentService {
 		try {
 			Comment dbComment = commentRepository.findById(commentDTO.getId())
 					                             .orElseThrow(() -> new ServiceException(CHANGING_ERROR));
+			
+			if (!isCurrentUserAdminOrRecordCreater(dbComment.getUserName())) {
+				log.error(USER_NAME_ERROR);
+				throw new ServiceException(CHANGING_ERROR);
+			}
+			
 			Comment changingComment = commentMapperImpl.toComment(commentDTO);
 			
 			String changingCommentText = changingComment.getText();
-			String changingCommentUserName = changingComment.getUserName();
-			Long changingCommentNewsId = changingComment.getNews().getId();
-			
+			Long changingCommentNewsId = changingComment.getNews().getId();			
+					
 			if (changingCommentText != null) {
 				dbComment.setText(changingCommentText);
-			}
-			
-			if (changingCommentUserName != null) {
-				dbComment.setUserName(changingCommentUserName);
 			}
 			
 			if (changingCommentNewsId != null && changingCommentNewsId > 0L) {
@@ -184,6 +189,11 @@ public class CommentServiceImpl implements CommentService {
 		try {
 			Comment dbComment = commentRepository.findById(commentDTO.getId())
 					                             .orElseThrow(() -> new ServiceException(REMOVING_ERROR));
+			
+			if (!isCurrentUserAdminOrRecordCreater(dbComment.getUserName())) {
+				log.error(USER_NAME_ERROR);
+				throw new ServiceException(REMOVING_ERROR);
+			}
 			
 			commentRepository.delete(dbComment);
 			

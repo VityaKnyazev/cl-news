@@ -32,7 +32,7 @@ import ru.clevertec.ecl.knyazev.integration.util.TestData;
 
 @ActiveProfiles(profiles = { "test" })
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK)
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(addFilters = false)
 @EnableConfigurationProperties
 @ContextHierarchy({
 		@ContextConfiguration(classes = PostgreSQLContainersConfig.class),

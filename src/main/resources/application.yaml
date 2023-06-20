@@ -12,8 +12,31 @@ springdoc:
 spring:
    config:
       activate:
-         on-profile: dev
+         on-profile: dev	
 
+#Spring cloud Feign client test settings   
+   cloud:
+      openfeign:
+         client:
+            config:
+               userClient:
+                  url: http://localhost:8083
+                  connectTimeout: 5000
+                  readTimeout: 5000
+                  loggerLevel: full
+                  authentication:
+                     username: ConnectionClient
+                     password: connectionClient
+
+#Spring Security settings for token and registration and authentication url's
+   security:
+      token:
+         lifeTime: 1200
+         secretKey: STRAIGHT_TO_MARS
+      url:
+         authenticationURL: /login
+         registrationURL: /signup
+      
 #Aspect settings for using controller logging and cache mechanism
 aspect:
 # Controller layer request and response logging controllerLogging: enable | disable
@@ -21,12 +44,12 @@ aspect:
 # Settings for cache: enable: true | false, type: redis | custom 
 # Also settings for custom caching: algorithm: lru | lfu and cache size
    cache:
-      enable: true
+      enable: false
       type: custom
       custom:
          algorithm: lru
          size: 10
-
+         
 connection:
    db:
       driverClassName: org.postgresql.Driver
@@ -41,17 +64,32 @@ connection:
       dialect: org.hibernate.dialect.PostgreSQLDialect
       showSql: true
       transactionIsolationValue: 2
-   redis:
-      host: localhost
-      port:
       
-
 ---      
 
 spring:
    config:
       activate:
-         on-profile: test
+         on-profile: test 
+   
+   #Spring cloud Feign client settings   
+   cloud:
+      openfeign:
+         client:
+            config:
+               userClient:
+                  url: http://localhost:8083
+                  connectTimeout: 5000
+                  readTimeout: 5000
+                  loggerLevel: full
+                  authentication:
+                     username: ConnectionClient
+                     password: connectionClient 
+                     
+   security:
+      token:
+         lifeTime: 1200
+         secretKey: STRAIGHT_TO_MARS
 
 connection:
    db:

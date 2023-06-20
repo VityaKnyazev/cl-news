@@ -44,6 +44,9 @@ public class News implements Serializable {
 	@Column(name = "text_data", nullable = false)
 	private String text;
 	
+	@Column(name = "author", nullable = false, length = 40)
+	private String authorName;
+	
 	@OneToMany(mappedBy = "news", cascade = { CascadeType.REFRESH, CascadeType.REMOVE })
 	private List<Comment> comments;
 	

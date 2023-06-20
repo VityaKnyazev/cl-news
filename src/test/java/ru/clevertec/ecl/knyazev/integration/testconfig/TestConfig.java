@@ -2,6 +2,8 @@ package ru.clevertec.ecl.knyazev.integration.testconfig;
 
 import java.util.List;
 
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.cloud.openfeign.FeignAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
@@ -14,14 +16,15 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import ru.clevertec.ecl.knyazev.config.SecurityWebConfig;
 import ru.clevertec.ecl.knyazev.config.WebConfig;
 
-
+@ImportAutoConfiguration({ FeignAutoConfiguration.class })
+@Import(value = { WebConfig.class, SecurityWebConfig.class })
 @EnableWebMvc
-@Import(value = WebConfig.class)
 @EnableJpaRepositories("ru.clevertec.ecl.knyazev.repository")
 @ComponentScan(basePackages = { "ru.clevertec.ecl.knyazev.service", "ru.clevertec.ecl.knyazev.mapper",
-		"ru.clevertec.ecl.knyazev.controller", "ru.clevertec.ecl.knyazev.config.connection" })
+		"ru.clevertec.ecl.knyazev.controller", "ru.clevertec.ecl.knyazev.config.connection", "ru.clevertec.ecl.knyazev.token" })
 public class TestConfig implements WebMvcConfigurer {
 	
 	@Bean

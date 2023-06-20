@@ -25,10 +25,12 @@ import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
 
+import lombok.AllArgsConstructor;
 import ru.clevertec.ecl.knyazev.dto.CommentDTO;
 import ru.clevertec.ecl.knyazev.integration.testconfig.TestConfig;
 import ru.clevertec.ecl.knyazev.integration.testconfig.testcontainers.PostgreSQLContainersConfig;
 import ru.clevertec.ecl.knyazev.integration.util.TestData;
+import ru.clevertec.ecl.knyazev.token.JwtUtil;
 
 @ActiveProfiles(profiles = { "test" })
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK)
@@ -38,15 +40,17 @@ import ru.clevertec.ecl.knyazev.integration.util.TestData;
 		@ContextConfiguration(classes = PostgreSQLContainersConfig.class),
 		@ContextConfiguration(classes = TestConfig.class)
 })
+@AllArgsConstructor(onConstructor_ = { @Autowired } )
 public class CommentControllerTest {
 	
 	private static final String REQUEST = "/comments";
 	
-	@Autowired
 	private MockMvc mockMvc;
 	
-	@Autowired
-	private ObjectMapper objectMapper;	
+	private ObjectMapper objectMapper;
+	
+	private JwtUtil jwtUtil;
+	
 	
 	@Test
 	@Transactional

@@ -40,6 +40,10 @@ public class NewsDTO {
 	@Size(min = 3, message = "Error, news text must contains at least 3 symbols")
 	private String text;
 	
+	@Schema(description = "News author name")
+	@Size(min = 3, max = 40, message = "Error, news author name must contains from 3 to 40 symbols")
+	private String authorName;
+	
 	@Schema(description = "List of comments DTO - comments information")
 	private List<CommentDTO> comments;
 	

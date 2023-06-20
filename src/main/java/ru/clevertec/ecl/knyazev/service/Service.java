@@ -76,4 +76,26 @@ public interface Service<T> {
 	 */
 	void remove(T t) throws ServiceException;
 	
+	/**
+	 * 
+	 * Check if security user is Admin or his name equals to user name that created entity record.
+	 * 
+	 * @param recordUserName entity record user namme
+	 * @return true if security user is Admin or his name equals to user name that created entity record, 
+	 *         otherwise - false.
+	 * @throws ServiceException when user not authenticated
+	 * 
+	 */
+	default boolean isCurrentUserAdminOrRecordCreater(String recordUserName) throws ServiceException {
+		
+		String securityUserName = SecurityUserService.getSecurityUserName();
+		List<String> securityRoles = SecurityUserService.getSecurityUserRoles();
+		
+		if (securityRoles.stream().anyMatch(r -> r.equals("ROLE_ADMIN")) 
+			|| securityUserName.equals(recordUserName)) {
+			return true;
+		}
+		
+		return false;		
+	}
 }

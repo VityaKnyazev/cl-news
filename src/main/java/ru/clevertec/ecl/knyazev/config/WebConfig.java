@@ -5,6 +5,7 @@ import java.util.HashMap;
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.web.config.PageableHandlerMethodArgumentResolverCustomizer;
@@ -23,6 +24,7 @@ import ru.clevertec.ecl.knyazev.config.connection.DatabaseConfig;
 import ru.clevertec.ecl.knyazev.config.connection.HibernateConfig;
 
 @Configuration
+@EnableFeignClients(basePackages = { "ru.clevertec.ecl.knyazev.client" } )
 @NoArgsConstructor
 @AllArgsConstructor(onConstructor_ = { @Autowired })
 public class WebConfig {
@@ -85,4 +87,5 @@ public class WebConfig {
     PageableHandlerMethodArgumentResolverCustomizer pageableResolverCustomizer() {
         return pageableResolver -> pageableResolver.setOneIndexedParameters(true);
     }
+	
 }

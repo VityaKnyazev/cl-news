@@ -19,6 +19,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -67,6 +68,7 @@ public class ExceptionController extends ResponseEntityExceptionHandler {
 		return handleExceptionInternal(ex, message, headers, status, request);
 	}
 
+	@Builder
 	@Data
 	@AllArgsConstructor
 	@NoArgsConstructor
