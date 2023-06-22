@@ -6,13 +6,15 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 
 import java.nio.charset.Charset;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -29,14 +31,15 @@ import lombok.AllArgsConstructor;
 import ru.clevertec.ecl.knyazev.dto.CommentDTO;
 import ru.clevertec.ecl.knyazev.integration.testconfig.TestConfig;
 import ru.clevertec.ecl.knyazev.integration.testconfig.testcontainers.PostgreSQLContainersConfig;
+import ru.clevertec.ecl.knyazev.integration.testconfig.wiremock.WireMockServerConfig;
 import ru.clevertec.ecl.knyazev.integration.util.TestData;
-import ru.clevertec.ecl.knyazev.token.JwtUtil;
 
 @ActiveProfiles(profiles = { "test" })
-@SpringBootTest(webEnvironment = WebEnvironment.MOCK)
+@SpringBootTest
 @AutoConfigureMockMvc
 @EnableConfigurationProperties
 @ContextHierarchy({
+		@ContextConfiguration(classes = WireMockServerConfig.class),
 		@ContextConfiguration(classes = PostgreSQLContainersConfig.class),
 		@ContextConfiguration(classes = TestConfig.class)
 })
@@ -45,18 +48,17 @@ public class CommentControllerTest {
 	
 	private static final String REQUEST = "/comments";
 	
+	private static final String LOGIN_REQUEST = "/login";
+	
 	private MockMvc mockMvc;
 	
 	private ObjectMapper objectMapper;
 	
-	private JwtUtil jwtUtil;
-	
-	
 	@Test
 	@Transactional
-	public void checkGetCommentShouldReturnOk() throws Exception {
-		
-		String inputIdRequest = REQUEST + "/4";
+	public void checkGetCommentShouldReturnOk() throws Exception {		
+			
+		String inputIdRequest = REQUEST + "/18";
 		
 		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get(inputIdRequest))
 				  .andReturn();
@@ -147,13 +149,17 @@ public class CommentControllerTest {
 		
 	}
 
-	@Test
+	@ParameterizedTest
+	@MethodSource("getJSONForUserWithRoleSubscriberAndAdmin")
 	@Transactional
-	public void checkAddCommentShouldReturnOk() throws Exception {
+	public void checkAddCommentShouldReturnOk(String jsonUser) throws Exception {
+		
+		String jwtTokenHeaderValue = loginUser(jsonUser);
 			
 		String savingCommentDTO = TestData.savingCommentDTO();
 				
 		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post(REQUEST)
+				.header("Authorization", jwtTokenHeaderValue)
 				.contentType(MediaType.APPLICATION_JSON)
 				.characterEncoding(Charset.forName("UTF-8"))
 				.content(savingCommentDTO))
@@ -170,13 +176,17 @@ public class CommentControllerTest {
 		
 	}
 	
-	@Test
+	@ParameterizedTest
+	@MethodSource("getJSONForUserWithRoleSubscriberAndAdmin")
 	@Transactional
-	public void checkAddCommentShouldReturnBadRequest() throws Exception {
+	public void checkAddCommentShouldReturnBadRequest(String jsonUser) throws Exception {
+		
+		String jwtTokenHeaderValue = loginUser(jsonUser);
 			
 		String savingInvalidCommentDTO = TestData.savingInvalidCommentDTO();
 				
 		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post(REQUEST)
+				.header("Authorization", jwtTokenHeaderValue)
 				.contentType(MediaType.APPLICATION_JSON)
 				.characterEncoding(Charset.forName("UTF-8"))
 				.content(savingInvalidCommentDTO))
@@ -188,12 +198,57 @@ public class CommentControllerTest {
 		
 	}
 	
+	@ParameterizedTest
+	@MethodSource("getJSONForUserWithRoleJournalist")
+	@Transactional
+	public void checkAddCommentShouldReturnForbiden(String jsonUser) throws Exception {
+		
+		String jwtTokenHeaderValue = loginUser(jsonUser);
+		
+		String savingCommentDTO = TestData.savingCommentDTO();
+				
+		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post(REQUEST)
+				.header("Authorization", jwtTokenHeaderValue)
+				.contentType(MediaType.APPLICATION_JSON)
+				.characterEncoding(Charset.forName("UTF-8"))
+				.content(savingCommentDTO))
+				.andReturn();
+
+		int actualStatus = result.getResponse().getStatus();
+
+		assertThat(actualStatus).isEqualTo(403);
+		
+	}
+	
 	@Test
 	@Transactional
-	public void checkChangeCommentShouldReturnOk() throws Exception {
+	public void checkAddCommentShouldReturnNotAuthorized() throws Exception {
+		
+		String savingCommentDTO = TestData.savingCommentDTO();
+				
+		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post(REQUEST)
+				.contentType(MediaType.APPLICATION_JSON)
+				.characterEncoding(Charset.forName("UTF-8"))
+				.content(savingCommentDTO))
+				.andReturn();
+
+		int actualStatus = result.getResponse().getStatus();
+
+		assertThat(actualStatus).isEqualTo(401);
+		
+	}
+	
+	@ParameterizedTest
+	@MethodSource("getJSONForUserWithRoleSubscriberAndAdmin")
+	@Transactional
+	public void checkChangeCommentShouldReturnOk(String jsonUser) throws Exception {
+		
+		String jwtTokenHeaderValue = loginUser(jsonUser);
+		
 		String changingCommentDTO = TestData.changingCommentDTO();
 		
 		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.put(REQUEST)
+				.header("Authorization", jwtTokenHeaderValue)
 				.contentType(MediaType.APPLICATION_JSON)
 				.characterEncoding(Charset.forName("UTF-8"))
 				.content(changingCommentDTO))
@@ -205,18 +260,22 @@ public class CommentControllerTest {
 		assertAll(
 				() -> assertThat(actualStatus).isEqualTo(200),
 				() -> assertThat(actualCommentDTO).isNotNull(),
-				() -> assertThat(actualCommentDTO.getUserName()).isEqualTo("Karina")
+				() -> assertThat(actualCommentDTO.getUserName()).isEqualTo("Alex")
 			);
 		
 	}
 	
-	@Test
+	@ParameterizedTest
+	@MethodSource("getJSONForUserWithRoleSubscriberAndAdmin")
 	@Transactional
-	public void checkChangeCommentShouldReturnBadRequest() throws Exception {
+	public void checkChangeCommentShouldReturnBadRequest(String jsonUser) throws Exception {
+		
+		String jwtTokenHeaderValue = loginUser(jsonUser);
 			
 		String changingInvalidCommentDTO = TestData.changingInvalidCommentDTO();
 				
 		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.put(REQUEST)
+				.header("Authorization", jwtTokenHeaderValue)
 				.contentType(MediaType.APPLICATION_JSON)
 				.characterEncoding(Charset.forName("UTF-8"))
 				.content(changingInvalidCommentDTO))
@@ -228,13 +287,57 @@ public class CommentControllerTest {
 		
 	}
 	
+	@ParameterizedTest
+	@MethodSource("getJSONForUserWithRoleJournalist")
+	@Transactional
+	public void checkChangeCommentShouldReturnForbiden(String jsonUser) throws Exception {
+		
+		String jwtTokenHeaderValue = loginUser(jsonUser);
+			
+		String changingCommentDTO = TestData.changingCommentDTO();
+				
+		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.put(REQUEST)
+				.header("Authorization", jwtTokenHeaderValue)
+				.contentType(MediaType.APPLICATION_JSON)
+				.characterEncoding(Charset.forName("UTF-8"))
+				.content(changingCommentDTO))
+				.andReturn();
+
+		int actualStatus = result.getResponse().getStatus();
+
+		assertThat(actualStatus).isEqualTo(403);
+		
+	}
+	
 	@Test
 	@Transactional
-	public void checkRemoveCommentShouldReturnNoContent() throws Exception {
+	public void checkChangeCommentShouldReturnNotAuthorized() throws Exception {
+							
+		String changingCommentDTO = TestData.changingCommentDTO();
+				
+		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.put(REQUEST)
+				.contentType(MediaType.APPLICATION_JSON)
+				.characterEncoding(Charset.forName("UTF-8"))
+				.content(changingCommentDTO))
+				.andReturn();
+
+		int actualStatus = result.getResponse().getStatus();
+
+		assertThat(actualStatus).isEqualTo(401);
+		
+	}
+	
+	@ParameterizedTest
+	@MethodSource("getJSONForUserWithRoleSubscriberAndAdmin")
+	@Transactional
+	public void checkRemoveCommentShouldReturnNoContent(String jsonUser) throws Exception {
+		
+		String jwtTokenHeaderValue = loginUser(jsonUser);
 		
 		String removingComment = TestData.removingEntity();
 		
 		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.delete(REQUEST)
+				.header("Authorization", jwtTokenHeaderValue)
 				.contentType(MediaType.APPLICATION_JSON)
 				.characterEncoding(Charset.forName("UTF-8"))
 				.content(removingComment))
@@ -246,9 +349,51 @@ public class CommentControllerTest {
 		
 	}
 	
-	@Test
+	@ParameterizedTest
+	@MethodSource("getJSONForUserWithRoleSubscriberAndAdmin")
 	@Transactional
-	public void checkRemoveCommentShouldReturnBadRequest() throws Exception {
+	public void checkRemoveCommentShouldReturnNotFound(String jsonUser) throws Exception {
+		
+		String jwtTokenHeaderValue = loginUser(jsonUser);
+		
+		String removingInvalidComment = TestData.removingInvalidEntity();
+		
+		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.delete(REQUEST)
+				.header("Authorization", jwtTokenHeaderValue)
+				.contentType(MediaType.APPLICATION_JSON)
+				.characterEncoding(Charset.forName("UTF-8"))
+				.content(removingInvalidComment))
+				.andReturn();
+
+		int actualStatus = result.getResponse().getStatus();
+
+		assertThat(actualStatus).isEqualTo(404);
+		
+	}
+	
+	@ParameterizedTest
+	@MethodSource("getJSONForUserWithRoleJournalist")
+	@Transactional
+	public void checkRemoveCommentShouldReturnForbiden(String jsonUser) throws Exception {
+		
+		String jwtTokenHeaderValue = loginUser(jsonUser);
+		
+		String removingInvalidComment = TestData.removingInvalidEntity();
+		
+		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.delete(REQUEST)
+				.header("Authorization", jwtTokenHeaderValue)
+				.contentType(MediaType.APPLICATION_JSON)
+				.characterEncoding(Charset.forName("UTF-8"))
+				.content(removingInvalidComment))
+				.andReturn();
+
+		int actualStatus = result.getResponse().getStatus();
+
+		assertThat(actualStatus).isEqualTo(403);
+	}
+	
+	@Test
+	public void checkRemoveCommentShouldReturnNotAuthorized() throws Exception {
 		
 		String removingInvalidComment = TestData.removingInvalidEntity();
 		
@@ -260,8 +405,43 @@ public class CommentControllerTest {
 
 		int actualStatus = result.getResponse().getStatus();
 
-		assertThat(actualStatus).isEqualTo(404);
+		assertThat(actualStatus).isEqualTo(401);
+	}
+						  
+	private static Stream<String> getJSONForUserWithRoleJournalist() {
+		return Stream.of(
+				TestData.getUserWithRoleJournalist()		
+			);
+	}	
+	
+	private static Stream<String> getJSONForUserWithRoleSubscriberAndAdmin() {
+		return Stream.of(
+					TestData.getUserWithRoleSubscriber(),
+					TestData.getUserWithRoleAdmin()				
+				);
+	}	
+	
+	/**
+	 * 
+	 * login user using feign client + wireMock stand-alone server
+	 * and return authentication token
+	 * 
+	 * @param loginUserJSON user name and password in JSON format
+	 * @return authentication java web token with prefix "Bearer "
+	 * @throws Exception if /login request failed
+	 * 
+	 */
+	private String loginUser(String loginUserJSON) throws Exception {
 		
+		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post(LOGIN_REQUEST)
+				.contentType(MediaType.APPLICATION_JSON)
+				.characterEncoding(Charset.forName("UTF-8"))
+				.content(loginUserJSON))
+				.andReturn();
+		
+		String jwtToken = result.getResponse().getContentAsString();
+		
+		return "Bearer " + jwtToken;
 	}
 	
 }

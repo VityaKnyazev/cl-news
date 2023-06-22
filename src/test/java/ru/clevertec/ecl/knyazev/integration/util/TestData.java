@@ -6,6 +6,8 @@ import java.nio.charset.Charset;
 
 public class TestData {
 	
+	private static int removeCounter = 5;
+	
 	public static String commentDTOOnId() {
 		return getDataFromFile("data/files/getCommentDTOOnId.txt");
 	}
@@ -49,12 +51,37 @@ public class TestData {
 	
 	
 	public static String removingEntity() {
-		return getDataFromFile("data/files/removingEntity.txt");
+		
+		String entity = "{\"id\":" + removeCounter + "}"; 
+		
+		removeCounter++;
+		
+		return entity;
 	}
 	
 	public static String removingInvalidEntity() {
 		return getDataFromFile("data/files/removingInvalidEntity.txt");
 	}
+	
+	
+	
+	
+	
+	
+	public static String getUserWithRoleSubscriber() {
+		return getDataFromFile("data/files/userWithRoleSubscriber.txt");
+	}
+	
+	public static String getUserWithRoleAdmin() {
+		return getDataFromFile("data/files/userWithRoleAdmin.txt");
+	}
+	
+	public static String getUserWithRoleJournalist() {
+		return getDataFromFile("data/files/userWithRoleJournalist.txt");
+	}
+	
+	
+	
 	
 	private static final String getDataFromFile(String file) {
 		

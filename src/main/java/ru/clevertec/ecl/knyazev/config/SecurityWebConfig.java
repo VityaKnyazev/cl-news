@@ -49,6 +49,20 @@ public class SecurityWebConfig {
 	private static final String COMMENTS_URI = "/comments";
 	private static final String COMMENT_URI = "/comments/\\d+";
 	
+	 private static final String[] SWAGER_WHITE_LIST = {
+	            // -- Swagger UI v2
+	            "/v2/api-docs",
+	            "/swagger-resources",
+	            "/swagger-resources/**",
+	            "/configuration/ui",
+	            "/configuration/security",
+	            "/swagger-ui.html",
+	            "/webjars/**",
+	            // -- Swagger UI v3 (OpenAPI)
+	            "/v3/api-docs/**",
+	            "/swagger-ui/**"
+	  };
+	
 	private String authenticationURL;
 
 	
@@ -103,7 +117,7 @@ public class SecurityWebConfig {
 				                || req.getRequestURI().matches(SINGLE_NEWS_URI)
 				                || req.getRequestURI().matches(COMMENT_URI))).permitAll()
 		
-		
+		.requestMatchers(HttpMethod.GET, SWAGER_WHITE_LIST).permitAll()
 		
 		.requestMatchers(HttpMethod.POST, authenticationURL).permitAll()		
 		.requestMatchers(HttpMethod.POST, registrationURL).permitAll()

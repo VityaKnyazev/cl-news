@@ -1,0 +1,13 @@
+{
+    "id": 3,
+    "name": "Taker",
+    "password": "{bcrypt}$2a$12$brVU7dDVcShl/mJpFRucC.mDpQtC1ZaXgKhf1ZqfQsJGHt.N6HJni",
+    "email": "taker@mail.ru",
+    "enabled": true,
+    "rolesDTO": [
+        {
+            "id": 3,
+            "name": "ROLE_JOURNALIST"
+        }
+    ]
+}

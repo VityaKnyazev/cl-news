@@ -18,7 +18,9 @@ import com.fasterxml.jackson.databind.deser.ValueInstantiator;
 
 import feign.auth.BasicAuthRequestInterceptor;
 import feign.codec.Decoder;
+import feign.codec.Encoder;
 import feign.jackson.JacksonDecoder;
+import feign.jackson.JacksonEncoder;
 import lombok.Setter;
 
 
@@ -55,6 +57,18 @@ public class UserClientConfig {
 
 	    return new ResponseEntityDecoder(new JacksonDecoder(mapper));
 	}
+	
+	
+	@Bean
+	public Encoder feignEncoder() {
+		
+		ObjectMapper objectMapper = new ObjectMapper()
+				.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, true);
+		
+		return new JacksonEncoder(objectMapper);
+	}
+	
+	
 	
 	
 }

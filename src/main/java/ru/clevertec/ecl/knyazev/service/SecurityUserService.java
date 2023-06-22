@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 
+import feign.FeignException;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +43,7 @@ public class SecurityUserService implements UserDetailsService {
 			
 			securityUser = securityUserMapperImpl.toSecurityUser(userDTO);	
 					                  
-		} catch (Exception e) {
+		} catch (FeignException e) {
 			log.error(MICROSERVICE_ERROR + ": {}", e.getMessage(), e);
 		}
 

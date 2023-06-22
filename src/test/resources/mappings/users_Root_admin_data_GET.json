@@ -1,0 +1,21 @@
+{
+    "request": {
+        "method": "GET",
+        "url": "/users?user_name=Root",
+        "headers": {
+            "Accept": {
+                "equalTo": "*/*"
+            },
+            "Authorization": {
+                "equalTo": "Basic Q29ubmVjdGlvblRlc3RDbGllbnQ6Y29ubmVjdGlvblRlc3RDbGllbnQ="
+            }
+        }
+    },
+    "response": {
+        "status": 200,
+        "headers": {
+            "Content-Type": "application/json;charset=utf-8"
+        },
+        "bodyFileName": "user_root_admin_data_response.json"
+    }
+}

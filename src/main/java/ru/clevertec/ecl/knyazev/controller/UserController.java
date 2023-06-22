@@ -56,7 +56,7 @@ public class UserController {
 		try {
 			
 			UserDTO registeredUserDTO = userServiceImpl.registerUser(userDTO);
-			return ResponseEntity.ok().body(registeredUserDTO);
+			return ResponseEntity.status(HttpStatus.CREATED).body(registeredUserDTO);
 			
 		} catch (ServiceException e) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

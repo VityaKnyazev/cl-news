@@ -11,7 +11,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,6 +47,8 @@ import ru.clevertec.ecl.knyazev.service.exception.ServiceException;
 @ExtendWith(MockitoExtension.class)
 public class CommentServiceImplTest {
 	
+	private MockedStatic<SecurityUserService> securityUserServiceMock;
+	
 	@Spy
 	private CommentMapper commentMapperImpl = new CommentMapperImpl();
 	
@@ -55,11 +58,18 @@ public class CommentServiceImplTest {
 	@InjectMocks
 	private CommentServiceImpl commentServiceImpl;
 	
-	private static MockedStatic<SecurityUserService> securityUserServiceMock;
-	
-	@BeforeAll
-	public static void setup() {
+	@BeforeEach
+	public void setup() {
 		securityUserServiceMock = Mockito.mockStatic(SecurityUserService.class);		
+	}
+	
+	@AfterEach
+	public void postExecute() {
+		
+		if (!securityUserServiceMock.isClosed()) {
+			securityUserServiceMock.close();
+		}
+		
 	}
 	
 	@Test

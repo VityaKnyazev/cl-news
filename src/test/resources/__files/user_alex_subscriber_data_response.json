@@ -1,0 +1,13 @@
+{
+    "id": 2,
+    "name": "Alex",
+    "password": "{bcrypt}$2a$12$V.rcWr4cSZFc37qDYpaBRu2KGlFsRmAfcFGNxEctNohlPe62uaKSW",
+    "email": "alex@mail.ru",
+    "enabled": true,
+    "rolesDTO": [
+        {
+            "id": 2,
+            "name": "ROLE_SUBSCRIBER"
+        }
+    ]
+}

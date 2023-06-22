@@ -1,0 +1,13 @@
+{
+    "id": 1,
+    "name": "Root",
+    "password": "{bcrypt}$2a$12$LkhNmmKXRNrpebx28k.El.e5OSZP161Ss4EYBIHa5VaHI2INyrqjW",
+    "email": "root@mail.ru",
+    "enabled": true,
+    "rolesDTO": [
+        {
+            "id": 1,
+            "name": "ROLE_ADMIN"
+        }
+    ]
+}

@@ -1,0 +1,26 @@
+{
+    "request": {
+        "method": "POST",
+        "url": "/users",
+        "headers": {
+            "Accept": {
+                "equalTo": "*/*"
+            },
+            "Authorization": {
+                "equalTo": "Basic Q29ubmVjdGlvblRlc3RDbGllbnQ6Y29ubmVjdGlvblRlc3RDbGllbnQ="
+            }
+        },
+        "bodyPatterns": [
+                    {
+                        "equalToJson": "{\"name\":\"Andrey\",\"password\":\"andrey\"}"
+                    }
+                ]
+    },
+    "response": {
+        "status": 200,
+        "headers": {
+            "Content-Type": "application/json;charset=utf-8"
+        },
+        "bodyFileName": "user_andrey_subscriber_data_response.json"
+    }
+}
