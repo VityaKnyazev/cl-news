@@ -1,18 +1,18 @@
 spring:
    profiles:
       active: dev
-      
+
 springdoc:
    show-actuator: false
    swagger-ui:
       enabled: true
-                  
+
 ---
 
 spring:
    config:
       activate:
-         on-profile: dev	
+         on-profile: prod
 
 #Spring cloud Feign client test settings   
    cloud:
@@ -20,24 +20,24 @@ spring:
          client:
             config:
                userClient:
-                  url: http://localhost:8083
+                  url: http://db-users:8083
                   connectTimeout: 5000
                   readTimeout: 5000
                   loggerLevel: full
                   authentication:
-                     username: ConnectionClient
-                     password: connectionClient
+                     username: ConnectionProdClient
+                     password: connectionProdClient
 
 #Spring Security settings for token and registration and authentication url's
    security:
       token:
 # JWT token time living in seconds
-         lifeTime: 1200
-         secretKey: STRAIGHT_TO_MARS
+         lifeTime: 2400
+         secretKey: STRAIGHT_TO_URAN
       url:
          authenticationURL: /login
          registrationURL: /signup
-      
+
 #Aspect settings for using controller logging and cache mechanism
 aspect:
 # Controller layer request and response logging controllerLogging: enable | disable
@@ -50,7 +50,66 @@ aspect:
       custom:
          algorithm: lru
          size: 10
-         
+
+connection:
+   db:
+      driverClassName: org.postgresql.Driver
+      jdbcUrl: jdbc:postgresql://db-news:5432/news?charSet=utf-8
+      username: admin
+      password: admin
+      maxPoolSize: 3
+      connectionTimeout: 3000
+   hibernate:
+      schema: none
+      sessionContext: thread
+      dialect: org.hibernate.dialect.PostgreSQLDialect
+      showSql: true
+      transactionIsolationValue: 2
+
+---
+
+spring:
+   config:
+      activate:
+         on-profile: dev
+
+#Spring cloud Feign client dev settings   
+   cloud:
+      openfeign:
+         client:
+            config:
+               userClient:
+                  url: http://localhost:8083
+                  connectTimeout: 5000
+                  readTimeout: 5000
+                  loggerLevel: full
+                  authentication:
+                     username: ConnectionDevClient
+                     password: connectionDevClient
+
+#Spring Security dev settings for token and registration and authentication url's
+   security:
+      token:
+# JWT token time living in seconds
+         lifeTime: 1200
+         secretKey: STRAIGHT_TO_MARS
+      url:
+         authenticationURL: /login
+         registrationURL: /signup
+
+#Aspect dev settings for using controller logging and cache mechanism
+aspect:
+# Controller layer request and response logging controllerLogging: enable | disable
+   controllerLogging: disable
+# Settings for cache: enable: true | false, type: redis | custom 
+# Also settings for custom caching: algorithm: lru | lfu and cache size
+   cache:
+      enable: false
+      type: custom
+      custom:
+         algorithm: lru
+         size: 10
+
 connection:
    db:
       driverClassName: org.postgresql.Driver
@@ -65,14 +124,14 @@ connection:
       dialect: org.hibernate.dialect.PostgreSQLDialect
       showSql: true
       transactionIsolationValue: 2
-      
+
 ---      
 
 spring:
    config:
       activate:
-         on-profile: test 
-   
+         on-profile: test
+
 #Spring cloud Feign client test settings   
    cloud:
       openfeign:
@@ -86,7 +145,7 @@ spring:
                   authentication:
                      username: ConnectionTestClient
                      password: connectionTestClient 
-                     
+
    security:
       token:
          lifeTime: 300
@@ -95,7 +154,7 @@ spring:
          authenticationURL: /login
          registrationURL: /signup
 
-#Wiremock stand-alone server test ssettings         
+#Wiremock stand-alone server test settings         
 wiremock:
    server:
       port: 8089
@@ -120,4 +179,3 @@ testcontainers:
    usernameEnvVar: db_user
    passwordEnvVar: db_password
    liquibaseChangelogFile: /liquibase/db-test-news-changelog.xml
-         
