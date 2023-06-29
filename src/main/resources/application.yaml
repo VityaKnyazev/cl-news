@@ -1,7 +1,10 @@
 spring:
    profiles:
-      active: dev
-
+      active: prod
+      
+   application:
+      name: news
+           
 springdoc:
    show-actuator: false
    swagger-ui:
@@ -12,170 +15,15 @@ springdoc:
 spring:
    config:
       activate:
-         on-profile: prod
-
-#Spring cloud Feign client test settings   
-   cloud:
-      openfeign:
-         client:
-            config:
-               userClient:
-                  url: http://db-users:8083
-                  connectTimeout: 5000
-                  readTimeout: 5000
-                  loggerLevel: full
-                  authentication:
-                     username: ConnectionProdClient
-                     password: connectionProdClient
-
-#Spring Security settings for token and registration and authentication url's
-   security:
-      token:
-# JWT token time living in seconds
-         lifeTime: 2400
-         secretKey: STRAIGHT_TO_URAN
-      url:
-         authenticationURL: /login
-         registrationURL: /signup
-
-#Aspect settings for using controller logging and cache mechanism
-aspect:
-# Controller layer request and response logging controllerLogging: enable | disable
-   controllerLogging: disable
-# Settings for cache: enable: true | false, type: redis | custom 
-# Also settings for custom caching: algorithm: lru | lfu and cache size
-   cache:
-      enable: false
-      type: custom
-      custom:
-         algorithm: lru
-         size: 10
-
-connection:
-   db:
-      driverClassName: org.postgresql.Driver
-      jdbcUrl: jdbc:postgresql://db-news:5432/news?charSet=utf-8
-      username: admin
-      password: admin
-      maxPoolSize: 3
-      connectionTimeout: 3000
-   hibernate:
-      schema: none
-      sessionContext: thread
-      dialect: org.hibernate.dialect.PostgreSQLDialect
-      showSql: true
-      transactionIsolationValue: 2
+         on-profile: dev
+      
+      import: configserver:http://localhost:8090
 
 ---
 
 spring:
    config:
       activate:
-         on-profile: dev
-
-#Spring cloud Feign client dev settings   
-   cloud:
-      openfeign:
-         client:
-            config:
-               userClient:
-                  url: http://localhost:8083
-                  connectTimeout: 5000
-                  readTimeout: 5000
-                  loggerLevel: full
-                  authentication:
-                     username: ConnectionDevClient
-                     password: connectionDevClient
-
-#Spring Security dev settings for token and registration and authentication url's
-   security:
-      token:
-# JWT token time living in seconds
-         lifeTime: 1200
-         secretKey: STRAIGHT_TO_MARS
-      url:
-         authenticationURL: /login
-         registrationURL: /signup
-
-#Aspect dev settings for using controller logging and cache mechanism
-aspect:
-# Controller layer request and response logging controllerLogging: enable | disable
-   controllerLogging: disable
-# Settings for cache: enable: true | false, type: redis | custom 
-# Also settings for custom caching: algorithm: lru | lfu and cache size
-   cache:
-      enable: false
-      type: custom
-      custom:
-         algorithm: lru
-         size: 10
-
-connection:
-   db:
-      driverClassName: org.postgresql.Driver
-      jdbcUrl: jdbc:postgresql://localhost:5432/news?charSet=utf-8
-      username: admin
-      password: admin
-      maxPoolSize: 3
-      connectionTimeout: 3000
-   hibernate:
-      schema: none
-      sessionContext: thread
-      dialect: org.hibernate.dialect.PostgreSQLDialect
-      showSql: true
-      transactionIsolationValue: 2
-
----      
-
-spring:
-   config:
-      activate:
-         on-profile: test
-
-#Spring cloud Feign client test settings   
-   cloud:
-      openfeign:
-         client:
-            config:
-               userClient:
-                  url: http://localhost:8089
-                  connectTimeout: 5000
-                  readTimeout: 5000
-                  loggerLevel: full
-                  authentication:
-                     username: ConnectionTestClient
-                     password: connectionTestClient 
-
-   security:
-      token:
-         lifeTime: 300
-         secretKey: STRAIGHT_TO_MARS
-      url:
-         authenticationURL: /login
-         registrationURL: /signup
-
-#Wiremock stand-alone server test settings         
-wiremock:
-   server:
-      port: 8089
-
-connection:
-   db:
-      driverClassName: org.postgresql.Driver
-      jdbcUrl: ${db_url}
-      username: ${db_user}
-      password: ${db_password}
-      maxPoolSize: 3
-      connectionTimeout: 3000
-   hibernate:
-      schema: none
-      sessionContext: thread
-      dialect: org.hibernate.dialect.PostgreSQLDialect
-      showSql: true
-      transactionIsolationValue: 2
-testcontainers:
-   postgresqlDockerImage: postgres:15.2
-   jdbcUrlEnvVar: db_url
-   usernameEnvVar: db_user
-   passwordEnvVar: db_password
-   liquibaseChangelogFile: /liquibase/db-test-news-changelog.xml
+         on-profile: prod
+   
+      import: configserver:http://app-config:8090

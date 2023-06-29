@@ -1,0 +1,55 @@
+spring:
+   config:
+      activate:
+         on-profile: test
+         
+   cloud:
+      config:
+         enabled: false
+
+#Spring cloud Feign client test settings   
+      openfeign:
+         client:
+            config:
+               userClient:
+                  url: http://localhost:8089
+                  connectTimeout: 5000
+                  readTimeout: 5000
+                  loggerLevel: full
+                  authentication:
+                     username: ConnectionTestClient
+                     password: connectionTestClient 
+
+   security:
+      token:
+         lifeTime: 300
+         secretKey: STRAIGHT_TO_MARS
+      url:
+         authenticationURL: /login
+         registrationURL: /signup
+
+#Wiremock stand-alone server test settings         
+wiremock:
+   server:
+      port: 8089
+
+connection:
+   db:
+      driverClassName: org.postgresql.Driver
+      jdbcUrl: ${db_url}
+      username: ${db_user}
+      password: ${db_password}
+      maxPoolSize: 3
+      connectionTimeout: 3000
+   hibernate:
+      schema: none
+      sessionContext: thread
+      dialect: org.hibernate.dialect.PostgreSQLDialect
+      showSql: true
+      transactionIsolationValue: 2
+testcontainers:
+   postgresqlDockerImage: postgres:15.2
+   jdbcUrlEnvVar: db_url
+   usernameEnvVar: db_user
+   passwordEnvVar: db_password
+   liquibaseChangelogFile: /liquibase/db-test-news-changelog.xml
